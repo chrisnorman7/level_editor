@@ -17,6 +17,7 @@ import '../json/game_level_platform_reference.dart';
 import '../json/game_level_reference.dart';
 import '../json/game_level_terrain_reference.dart';
 import '../providers.dart';
+import 'tile_card.dart';
 
 /// A widget for editing the level with the given [levelId].
 class LevelEditor extends ConsumerStatefulWidget {
@@ -70,7 +71,6 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
   /// Build a widget.
   @override
   Widget build(final BuildContext context) {
-    final editor = ref.watch(levelEditorContextProvider);
     const shortcuts = <String>[
       'W: Move north',
       'D: move east',
@@ -87,71 +87,91 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
     if (tiles.isEmpty) {
       rebuildTiles();
     }
-    final tile = getTileAt(coordinates);
-    final Sound sound;
-    if (tile == null) {
-      sound = editor.wallSound;
-    } else {
-      final terrain = ref.read(terrainProvider(tile.terrainId));
-      final footstepSounds = ref.read(
-        footstepsProvider(
-          key: terrain.footstepSounds,
-          destroy: true,
-          volume: terrain.footstepSoundsGain,
-        ),
-      );
-      sound = footstepSounds.randomElement(random);
-    }
-    context.playSound(sound);
-    return CallbackShortcuts(
-      bindings: {
-        SingleActivator(
-          LogicalKeyboardKey.slash,
-          control: useControlKey,
-          meta: useMetaKey,
-        ): () => context.pushWidgetBuilder(
-              (final innerContext) => Cancel(
-                child: SimpleScaffold(
-                  title: 'Keyboard Shortcuts',
-                  body: ListView.builder(
-                    itemBuilder: (final context, final index) {
-                      final shortcut = shortcuts[index];
-                      return ListTile(
-                        autofocus: index == 0,
-                        title: Text(shortcut),
-                        onTap: shortcut.copyToClipboard,
-                      );
-                    },
-                    itemCount: shortcuts.length,
-                    shrinkWrap: true,
+    return OrientationBuilder(
+      builder: (final context, final orientation) {
+        final int columns;
+        final int rows;
+        switch (orientation) {
+          case Orientation.portrait:
+            rows = 6;
+            columns = 3;
+          case Orientation.landscape:
+            rows = 3;
+            columns = 5;
+        }
+        return CallbackShortcuts(
+          bindings: {
+            SingleActivator(
+              LogicalKeyboardKey.slash,
+              control: useControlKey,
+              meta: useMetaKey,
+            ): () => context.pushWidgetBuilder(
+                  (final innerContext) => Cancel(
+                    child: SimpleScaffold(
+                      title: 'Keyboard Shortcuts',
+                      body: ListView.builder(
+                        itemBuilder: (final context, final index) {
+                          final shortcut = shortcuts[index];
+                          return ListTile(
+                            autofocus: index == 0,
+                            title: Text(shortcut),
+                            onTap: shortcut.copyToClipboard,
+                          );
+                        },
+                        itemCount: shortcuts.length,
+                        shrinkWrap: true,
+                      ),
+                    ),
                   ),
                 ),
-              ),
+            const SingleActivator(LogicalKeyboardKey.keyW): () =>
+                moveCamera(MovingDirection.forwards, rows),
+            const SingleActivator(LogicalKeyboardKey.keyA): () =>
+                moveCamera(MovingDirection.left, columns),
+            const SingleActivator(LogicalKeyboardKey.keyS): () =>
+                moveCamera(MovingDirection.backwards, rows),
+            const SingleActivator(LogicalKeyboardKey.keyD): () =>
+                moveCamera(MovingDirection.right, columns),
+            const SingleActivator(LogicalKeyboardKey.bracketRight): () =>
+                switchPlatforms(1),
+            const SingleActivator(LogicalKeyboardKey.bracketLeft): () =>
+                switchPlatforms(-1),
+            SingleActivator(
+              LogicalKeyboardKey.keyN,
+              control: useControlKey,
+              meta: useMetaKey,
+            ): newPlatform,
+          },
+          child: Expanded(
+            child: Column(
+              children: [
+                for (var row = rows; row >= 0; row--)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (var column = 0; column <= columns; column++)
+                        Focus(
+                          child: TileCard(
+                            random: random,
+                            tile: getTileAt(
+                              Point(
+                                coordinates.x + column,
+                                coordinates.y + row,
+                              ),
+                            ),
+                            coordinates: Point(
+                              coordinates.x + column,
+                              coordinates.y + row,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+              ],
             ),
-        const SingleActivator(LogicalKeyboardKey.keyW): () =>
-            moveCamera(MovingDirection.forwards),
-        const SingleActivator(LogicalKeyboardKey.keyA): () =>
-            moveCamera(MovingDirection.left),
-        const SingleActivator(LogicalKeyboardKey.keyS): () =>
-            moveCamera(MovingDirection.backwards),
-        const SingleActivator(LogicalKeyboardKey.keyD): () =>
-            moveCamera(MovingDirection.right),
-        const SingleActivator(LogicalKeyboardKey.bracketRight): () =>
-            switchPlatforms(1),
-        const SingleActivator(LogicalKeyboardKey.bracketLeft): () =>
-            switchPlatforms(-1),
-        SingleActivator(
-          LogicalKeyboardKey.keyN,
-          control: useControlKey,
-          meta: useMetaKey,
-        ): newPlatform,
+          ),
+        );
       },
-      child: Focus(
-        autofocus: true,
-        child: Text(
-          '${coordinates.x}, ${coordinates.y}: ${tile?.name ?? "<Wall>"}',
-        ),
-      ),
     );
   }
 
@@ -185,15 +205,15 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
   }
 
   /// Move the camera in the given [direction].
-  void moveCamera(final MovingDirection direction) {
+  void moveCamera(final MovingDirection direction, final int distance) {
     final x = switch (direction) {
-      MovingDirection.left => coordinates.x - 1,
-      MovingDirection.right => coordinates.x + 1,
+      MovingDirection.left => coordinates.x - distance,
+      MovingDirection.right => coordinates.x + distance,
       _ => coordinates.x
     };
     final y = switch (direction) {
-      MovingDirection.forwards => coordinates.y + 1,
-      MovingDirection.backwards => coordinates.y - 1,
+      MovingDirection.forwards => coordinates.y + distance,
+      MovingDirection.backwards => coordinates.y - distance,
       _ => coordinates.y
     };
     final point = Point(x, y);
