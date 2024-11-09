@@ -68,116 +68,117 @@ class TileCard extends ConsumerWidget {
       sound = footstepSounds.randomElement(random);
     }
     final tileName = platform?.name ?? '<Wall>';
-    return PlaySoundSemantics(
-      key: ValueKey(tile?.id ?? 'wall'),
-      sound: sound,
-      child: PerformableActions(
-        actions: [
-          if (platform != null)
-            PerformableAction(
-              name: 'Rename',
-              activator: SingleActivator(
-                LogicalKeyboardKey.keyR,
-                control: useControlKey,
-                meta: useMetaKey,
-              ),
-              invoke: () {
-                context.pushWidgetBuilder(
-                  (final getTextContext) {
-                    final oldName = platform.name;
-                    return GetText(
-                      onDone: (final value) {
-                        Navigator.pop(getTextContext);
-                        final action = UndoableAction(
-                          perform: () {
-                            platform.name = value;
-                          },
-                          undo: () => platform.name = oldName,
-                        );
-                        performAction(action);
-                      },
-                      labelText: 'Platform name',
-                      text: oldName,
-                      title: 'Rename Platform',
-                    );
-                  },
-                );
-              },
-            ),
-          if (platform != null)
-            PerformableAction(
-              name: 'Delete',
-              activator: const SingleActivator(LogicalKeyboardKey.delete),
-              invoke: () {
-                for (final other in level.platforms) {
-                  if (other.link?.platformId == platform.id) {
-                    context.showMessage(
-                      message:
-                          // ignore: lines_longer_than_80_chars
-                          'You cannot delete the $tileName platform until you have unlinked it from ${other.name}.',
-                    );
-                    return;
-                  }
-                }
-                context.confirm(
-                  message:
-                      'Are you sure you want to delete the $tileName platform?',
-                  title: 'Confirm Delete',
-                  yesCallback: () {
-                    Navigator.pop(context);
+    final actions = [
+      if (platform != null)
+        PerformableAction(
+          name: 'Rename',
+          activator: SingleActivator(
+            LogicalKeyboardKey.keyR,
+            control: useControlKey,
+            meta: useMetaKey,
+          ),
+          invoke: () {
+            context.pushWidgetBuilder(
+              (final getTextContext) {
+                final oldName = platform.name;
+                return GetText(
+                  onDone: (final value) {
+                    Navigator.pop(getTextContext);
                     final action = UndoableAction(
                       perform: () {
-                        level.platforms.removeWhere(
-                          (final other) => other.id == platform.id,
-                        );
+                        platform.name = value;
                       },
-                      undo: () {
-                        level.platforms.add(platform);
-                      },
+                      undo: () => platform.name = oldName,
                     );
                     performAction(action);
                   },
+                  labelText: 'Platform name',
+                  text: oldName,
+                  title: 'Rename Platform',
                 );
               },
-            ),
-          if (platform == null)
-            PerformableAction(
-              name: 'New platform',
-              activator: SingleActivator(
-                LogicalKeyboardKey.keyN,
-                control: useControlKey,
-                meta: useMetaKey,
-              ),
-              invoke: () {
-                final platform = GameLevelPlatformReference(
-                  id: newId(),
-                  terrainId: terrains.first.id,
-                  startX: max(0, coordinates.x),
-                  startY: max(0, coordinates.y),
+            );
+          },
+        ),
+      if (platform != null)
+        PerformableAction(
+          name: 'Delete',
+          activator: const SingleActivator(LogicalKeyboardKey.delete),
+          invoke: () {
+            for (final other in level.platforms) {
+              if (other.link?.platformId == platform.id) {
+                context.showMessage(
+                  message:
+                      // ignore: lines_longer_than_80_chars
+                      'You cannot delete the $tileName platform until you have unlinked it from ${other.name}.',
                 );
-                if (coordinates.x < 0 || coordinates.y < 0) {
-                  for (final other in level.platforms) {
-                    if (coordinates.x < 0) {
-                      other.startX -= coordinates.x;
-                    }
-                    if (coordinates.y < 0) {
-                      other.startY -= coordinates.y;
-                    }
-                  }
-                }
+                return;
+              }
+            }
+            context.confirm(
+              message:
+                  'Are you sure you want to delete the $tileName platform?',
+              title: 'Confirm Delete',
+              yesCallback: () {
+                Navigator.pop(context);
                 final action = UndoableAction(
                   perform: () {
-                    level.platforms.add(platform);
+                    level.platforms.removeWhere(
+                      (final other) => other.id == platform.id,
+                    );
                   },
                   undo: () {
-                    level.platforms
-                        .removeWhere((final other) => other.id == platform.id);
+                    level.platforms.add(platform);
                   },
                 );
                 performAction(action);
               },
-            ),
-        ],
+            );
+          },
+        ),
+      if (platform == null)
+        PerformableAction(
+          name: 'New platform',
+          activator: SingleActivator(
+            LogicalKeyboardKey.keyN,
+            control: useControlKey,
+            meta: useMetaKey,
+          ),
+          invoke: () {
+            final platform = GameLevelPlatformReference(
+              id: newId(),
+              terrainId: terrains.first.id,
+              startX: max(0, coordinates.x),
+              startY: max(0, coordinates.y),
+            );
+            if (coordinates.x < 0 || coordinates.y < 0) {
+              for (final other in level.platforms) {
+                if (coordinates.x < 0) {
+                  other.startX -= coordinates.x;
+                }
+                if (coordinates.y < 0) {
+                  other.startY -= coordinates.y;
+                }
+              }
+            }
+            final action = UndoableAction(
+              perform: () {
+                level.platforms.add(platform);
+              },
+              undo: () {
+                level.platforms
+                    .removeWhere((final other) => other.id == platform.id);
+              },
+            );
+            performAction(action);
+          },
+        ),
+    ];
+    return PlaySoundSemantics(
+      key: ValueKey(tile?.id ?? 'wall'),
+      sound: sound,
+      child: PerformableActions(
+        actions: actions,
         child: Focus(
           autofocus: autofocus,
           child: Semantics(

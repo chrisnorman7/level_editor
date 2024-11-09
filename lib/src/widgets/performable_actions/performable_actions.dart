@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 
 import 'performable_action.dart';
 
@@ -20,16 +21,42 @@ class PerformableActions extends StatelessWidget {
 
   /// Build the widget.
   @override
-  Widget build(final BuildContext context) => CallbackShortcuts(
-        bindings: {
-          for (final action in actions) action.activator: action.invoke,
+  Widget build(final BuildContext context) => Semantics(
+        customSemanticsActions: {
+          for (final action in actions)
+            CustomSemanticsAction(label: action.name): action.invoke,
         },
-        child: Semantics(
-          customSemanticsActions: {
-            for (final action in actions)
-              CustomSemanticsAction(label: action.name): action.invoke,
-          },
-          child: child,
+        child: MenuAnchor(
+          menuChildren: [
+            for (var i = 0; i < actions.length; i++)
+              MenuItemButton(
+                autofocus: i == 0,
+                onPressed: actions[i].invoke,
+                child: Text(actions[i].name),
+              ),
+          ],
+          builder: (final _, final controller, final __) => CallbackShortcuts(
+            bindings: {
+              const SingleActivator(LogicalKeyboardKey.enter): () =>
+                  toggleController(controller),
+              const SingleActivator(LogicalKeyboardKey.space): () =>
+                  toggleController(controller),
+              for (final action in actions) action.activator: action.invoke,
+            },
+            child: GestureDetector(
+              onTap: () => toggleController(controller),
+              child: child,
+            ),
+          ),
         ),
       );
+
+  /// Toggle [controller] open or closed.
+  void toggleController(final MenuController controller) {
+    if (controller.isOpen) {
+      controller.close();
+    } else {
+      controller.open();
+    }
+  }
 }
