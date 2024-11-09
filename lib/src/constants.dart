@@ -1,11 +1,9 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as path;
 import 'package:uuid/uuid.dart';
 
-import '../extensions.dart';
 import 'json/game_level_reference.dart';
 import 'json/game_level_terrain_reference.dart';
 import 'json/game_level_terrains.dart';
@@ -23,18 +21,15 @@ const uuid = Uuid();
 /// Get a new id from [uuid].
 String newId() => uuid.v4();
 
-/// The JSON encoder to use.
-const indentedJsonEncoder = JsonEncoder.withIndent('  ');
-
 /// Save [terrains] to disk.
 void saveTerrains({
   required final WidgetRef ref,
   required final List<GameLevelTerrainReference> terrains,
 }) {
-  final source = indentedJsonEncoder.convert(GameLevelTerrains(terrains));
-  final filename = ref.context.levelEditor.terrainsFilename;
-  ref.context.levelEditor.terrainsFile.writeAsStringSync(source);
-  ref.invalidate(TerrainsProvider(filename));
+  final context = ref.read(levelEditorContextProvider);
+  final source = context.jsonEncoder.convert(GameLevelTerrains(terrains));
+  context.terrainsFile.writeAsStringSync(source);
+  ref.invalidate(terrainsProvider);
 }
 
 /// Save [level].
@@ -42,9 +37,9 @@ void saveLevel({
   required final WidgetRef ref,
   required final GameLevelReference level,
 }) {
-  final source = indentedJsonEncoder.convert(level);
-  final editor = ref.context.levelEditor;
-  File(path.join(editor.levelsDirectory, level.filename))
+  final context = ref.read(levelEditorContextProvider);
+  final source = context.jsonEncoder.convert(level);
+  File(path.join(context.levelsDirectoryName, level.filename))
       .writeAsStringSync(source);
-  ref.invalidate(GameLevelsProvider(editor.levelsDirectory));
+  ref.invalidate(gameLevelsProvider);
 }

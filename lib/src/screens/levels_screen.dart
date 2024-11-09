@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as path;
 
-import '../../extensions.dart';
 import '../constants.dart';
 import '../json/game_level_reference.dart';
 import '../providers.dart';
@@ -23,9 +22,9 @@ class LevelsScreen extends ConsumerWidget {
   /// Build the widget.
   @override
   Widget build(final BuildContext context, final WidgetRef ref) {
-    final editor = context.levelEditor;
-    final levelsDirectory = editor.levelsDirectory;
-    final levels = ref.watch(GameLevelsProvider(levelsDirectory));
+    final editor = ref.watch(levelEditorContextProvider);
+    final levelsDirectory = editor.levelsDirectoryName;
+    final levels = ref.watch(gameLevelsProvider);
     final Widget child;
     if (levels.isEmpty) {
       child = const CenterText(
@@ -48,7 +47,7 @@ class LevelsScreen extends ConsumerWidget {
                   File(path.join(levelsDirectory, level.filename)).deleteSync(
                     recursive: true,
                   );
-                  ref.invalidate(GameLevelsProvider(levelsDirectory));
+                  ref.invalidate(gameLevelsProvider);
                 },
               );
             },

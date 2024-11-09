@@ -6,7 +6,26 @@ part of 'providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$terrainsHash() => r'bb847655f1d882756fcf8cc97017b40fe0f250b1';
+String _$terrainsHash() => r'6b2c86330c6e6e3b8295b0fd07e7acb6de60842d';
+
+/// Provide the terrains that have been created.
+///
+/// Copied from [terrains].
+@ProviderFor(terrains)
+final terrainsProvider =
+    AutoDisposeProvider<List<GameLevelTerrainReference>>.internal(
+  terrains,
+  name: r'terrainsProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$terrainsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef TerrainsRef = AutoDisposeProviderRef<List<GameLevelTerrainReference>>;
+String _$terrainHash() => r'e1bae8c9f6e785730284850c6e6e95717ebe6810';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -29,177 +48,28 @@ class _SystemHash {
   }
 }
 
-/// Provide the terrains from [filename].
-///
-/// Copied from [terrains].
-@ProviderFor(terrains)
-const terrainsProvider = TerrainsFamily();
-
-/// Provide the terrains from [filename].
-///
-/// Copied from [terrains].
-class TerrainsFamily extends Family<List<GameLevelTerrainReference>> {
-  /// Provide the terrains from [filename].
-  ///
-  /// Copied from [terrains].
-  const TerrainsFamily();
-
-  /// Provide the terrains from [filename].
-  ///
-  /// Copied from [terrains].
-  TerrainsProvider call(
-    String filename,
-  ) {
-    return TerrainsProvider(
-      filename,
-    );
-  }
-
-  @override
-  TerrainsProvider getProviderOverride(
-    covariant TerrainsProvider provider,
-  ) {
-    return call(
-      provider.filename,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'terrainsProvider';
-}
-
-/// Provide the terrains from [filename].
-///
-/// Copied from [terrains].
-class TerrainsProvider
-    extends AutoDisposeProvider<List<GameLevelTerrainReference>> {
-  /// Provide the terrains from [filename].
-  ///
-  /// Copied from [terrains].
-  TerrainsProvider(
-    String filename,
-  ) : this._internal(
-          (ref) => terrains(
-            ref as TerrainsRef,
-            filename,
-          ),
-          from: terrainsProvider,
-          name: r'terrainsProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$terrainsHash,
-          dependencies: TerrainsFamily._dependencies,
-          allTransitiveDependencies: TerrainsFamily._allTransitiveDependencies,
-          filename: filename,
-        );
-
-  TerrainsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.filename,
-  }) : super.internal();
-
-  final String filename;
-
-  @override
-  Override overrideWith(
-    List<GameLevelTerrainReference> Function(TerrainsRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: TerrainsProvider._internal(
-        (ref) => create(ref as TerrainsRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        filename: filename,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeProviderElement<List<GameLevelTerrainReference>> createElement() {
-    return _TerrainsProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is TerrainsProvider && other.filename == filename;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, filename.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin TerrainsRef on AutoDisposeProviderRef<List<GameLevelTerrainReference>> {
-  /// The parameter `filename` of this provider.
-  String get filename;
-}
-
-class _TerrainsProviderElement
-    extends AutoDisposeProviderElement<List<GameLevelTerrainReference>>
-    with TerrainsRef {
-  _TerrainsProviderElement(super.provider);
-
-  @override
-  String get filename => (origin as TerrainsProvider).filename;
-}
-
-String _$terrainHash() => r'3a473b9737d5a1083e316cb670402e529d39d747';
-
-/// Provide a single terrain with the given [id] from the terrains file at
-/// [filename].
+/// Provide the terrain with the given [id].
 ///
 /// Copied from [terrain].
 @ProviderFor(terrain)
 const terrainProvider = TerrainFamily();
 
-/// Provide a single terrain with the given [id] from the terrains file at
-/// [filename].
+/// Provide the terrain with the given [id].
 ///
 /// Copied from [terrain].
 class TerrainFamily extends Family<GameLevelTerrainReference> {
-  /// Provide a single terrain with the given [id] from the terrains file at
-  /// [filename].
+  /// Provide the terrain with the given [id].
   ///
   /// Copied from [terrain].
   const TerrainFamily();
 
-  /// Provide a single terrain with the given [id] from the terrains file at
-  /// [filename].
+  /// Provide the terrain with the given [id].
   ///
   /// Copied from [terrain].
   TerrainProvider call(
-    String filename,
     String id,
   ) {
     return TerrainProvider(
-      filename,
       id,
     );
   }
@@ -209,7 +79,6 @@ class TerrainFamily extends Family<GameLevelTerrainReference> {
     covariant TerrainProvider provider,
   ) {
     return call(
-      provider.filename,
       provider.id,
     );
   }
@@ -229,22 +98,18 @@ class TerrainFamily extends Family<GameLevelTerrainReference> {
   String? get name => r'terrainProvider';
 }
 
-/// Provide a single terrain with the given [id] from the terrains file at
-/// [filename].
+/// Provide the terrain with the given [id].
 ///
 /// Copied from [terrain].
 class TerrainProvider extends AutoDisposeProvider<GameLevelTerrainReference> {
-  /// Provide a single terrain with the given [id] from the terrains file at
-  /// [filename].
+  /// Provide the terrain with the given [id].
   ///
   /// Copied from [terrain].
   TerrainProvider(
-    String filename,
     String id,
   ) : this._internal(
           (ref) => terrain(
             ref as TerrainRef,
-            filename,
             id,
           ),
           from: terrainProvider,
@@ -255,7 +120,6 @@ class TerrainProvider extends AutoDisposeProvider<GameLevelTerrainReference> {
                   : _$terrainHash,
           dependencies: TerrainFamily._dependencies,
           allTransitiveDependencies: TerrainFamily._allTransitiveDependencies,
-          filename: filename,
           id: id,
         );
 
@@ -266,11 +130,9 @@ class TerrainProvider extends AutoDisposeProvider<GameLevelTerrainReference> {
     required super.allTransitiveDependencies,
     required super.debugGetCreateSourceHash,
     required super.from,
-    required this.filename,
     required this.id,
   }) : super.internal();
 
-  final String filename;
   final String id;
 
   @override
@@ -286,7 +148,6 @@ class TerrainProvider extends AutoDisposeProvider<GameLevelTerrainReference> {
         dependencies: null,
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
-        filename: filename,
         id: id,
       ),
     );
@@ -299,15 +160,12 @@ class TerrainProvider extends AutoDisposeProvider<GameLevelTerrainReference> {
 
   @override
   bool operator ==(Object other) {
-    return other is TerrainProvider &&
-        other.filename == filename &&
-        other.id == id;
+    return other is TerrainProvider && other.id == id;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, filename.hashCode);
     hash = _SystemHash.combine(hash, id.hashCode);
 
     return _SystemHash.finish(hash);
@@ -317,9 +175,6 @@ class TerrainProvider extends AutoDisposeProvider<GameLevelTerrainReference> {
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 mixin TerrainRef on AutoDisposeProviderRef<GameLevelTerrainReference> {
-  /// The parameter `filename` of this provider.
-  String get filename;
-
   /// The parameter `id` of this provider.
   String get id;
 }
@@ -330,155 +185,29 @@ class _TerrainProviderElement
   _TerrainProviderElement(super.provider);
 
   @override
-  String get filename => (origin as TerrainProvider).filename;
-  @override
   String get id => (origin as TerrainProvider).id;
 }
 
-String _$gameLevelsHash() => r'c541b7ab4614aba461673d6cbba557cd19c96675';
+String _$gameLevelsHash() => r'358ddb1b77d57bfef0e8c4963717b20434b7f620';
 
-/// Provide all game levels loaded from the directory at [path].
+/// Provide all the created game levels.
 ///
 /// Copied from [gameLevels].
 @ProviderFor(gameLevels)
-const gameLevelsProvider = GameLevelsFamily();
-
-/// Provide all game levels loaded from the directory at [path].
-///
-/// Copied from [gameLevels].
-class GameLevelsFamily extends Family<List<GameLevelReference>> {
-  /// Provide all game levels loaded from the directory at [path].
-  ///
-  /// Copied from [gameLevels].
-  const GameLevelsFamily();
-
-  /// Provide all game levels loaded from the directory at [path].
-  ///
-  /// Copied from [gameLevels].
-  GameLevelsProvider call(
-    String path,
-  ) {
-    return GameLevelsProvider(
-      path,
-    );
-  }
-
-  @override
-  GameLevelsProvider getProviderOverride(
-    covariant GameLevelsProvider provider,
-  ) {
-    return call(
-      provider.path,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'gameLevelsProvider';
-}
-
-/// Provide all game levels loaded from the directory at [path].
-///
-/// Copied from [gameLevels].
-class GameLevelsProvider extends AutoDisposeProvider<List<GameLevelReference>> {
-  /// Provide all game levels loaded from the directory at [path].
-  ///
-  /// Copied from [gameLevels].
-  GameLevelsProvider(
-    String path,
-  ) : this._internal(
-          (ref) => gameLevels(
-            ref as GameLevelsRef,
-            path,
-          ),
-          from: gameLevelsProvider,
-          name: r'gameLevelsProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$gameLevelsHash,
-          dependencies: GameLevelsFamily._dependencies,
-          allTransitiveDependencies:
-              GameLevelsFamily._allTransitiveDependencies,
-          path: path,
-        );
-
-  GameLevelsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.path,
-  }) : super.internal();
-
-  final String path;
-
-  @override
-  Override overrideWith(
-    List<GameLevelReference> Function(GameLevelsRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: GameLevelsProvider._internal(
-        (ref) => create(ref as GameLevelsRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        path: path,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeProviderElement<List<GameLevelReference>> createElement() {
-    return _GameLevelsProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is GameLevelsProvider && other.path == path;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, path.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
-}
+final gameLevelsProvider =
+    AutoDisposeProvider<List<GameLevelReference>>.internal(
+  gameLevels,
+  name: r'gameLevelsProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$gameLevelsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin GameLevelsRef on AutoDisposeProviderRef<List<GameLevelReference>> {
-  /// The parameter `path` of this provider.
-  String get path;
-}
-
-class _GameLevelsProviderElement
-    extends AutoDisposeProviderElement<List<GameLevelReference>>
-    with GameLevelsRef {
-  _GameLevelsProviderElement(super.provider);
-
-  @override
-  String get path => (origin as GameLevelsProvider).path;
-}
-
-String _$gameLevelHash() => r'7295e0466dcbf62bca1cc77d51ecf6c200b35b35';
+typedef GameLevelsRef = AutoDisposeProviderRef<List<GameLevelReference>>;
+String _$gameLevelHash() => r'd968a4730ccc9e2377293e9ebfdc59df1ce1e0a1';
 
 /// Provide a single game level reference with the given [id].
 ///
@@ -499,11 +228,9 @@ class GameLevelFamily extends Family<GameLevelReference> {
   ///
   /// Copied from [gameLevel].
   GameLevelProvider call(
-    String path,
     String id,
   ) {
     return GameLevelProvider(
-      path,
       id,
     );
   }
@@ -513,7 +240,6 @@ class GameLevelFamily extends Family<GameLevelReference> {
     covariant GameLevelProvider provider,
   ) {
     return call(
-      provider.path,
       provider.id,
     );
   }
@@ -541,12 +267,10 @@ class GameLevelProvider extends AutoDisposeProvider<GameLevelReference> {
   ///
   /// Copied from [gameLevel].
   GameLevelProvider(
-    String path,
     String id,
   ) : this._internal(
           (ref) => gameLevel(
             ref as GameLevelRef,
-            path,
             id,
           ),
           from: gameLevelProvider,
@@ -557,7 +281,6 @@ class GameLevelProvider extends AutoDisposeProvider<GameLevelReference> {
                   : _$gameLevelHash,
           dependencies: GameLevelFamily._dependencies,
           allTransitiveDependencies: GameLevelFamily._allTransitiveDependencies,
-          path: path,
           id: id,
         );
 
@@ -568,11 +291,9 @@ class GameLevelProvider extends AutoDisposeProvider<GameLevelReference> {
     required super.allTransitiveDependencies,
     required super.debugGetCreateSourceHash,
     required super.from,
-    required this.path,
     required this.id,
   }) : super.internal();
 
-  final String path;
   final String id;
 
   @override
@@ -588,7 +309,6 @@ class GameLevelProvider extends AutoDisposeProvider<GameLevelReference> {
         dependencies: null,
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
-        path: path,
         id: id,
       ),
     );
@@ -601,13 +321,12 @@ class GameLevelProvider extends AutoDisposeProvider<GameLevelReference> {
 
   @override
   bool operator ==(Object other) {
-    return other is GameLevelProvider && other.path == path && other.id == id;
+    return other is GameLevelProvider && other.id == id;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, path.hashCode);
     hash = _SystemHash.combine(hash, id.hashCode);
 
     return _SystemHash.finish(hash);
@@ -617,9 +336,6 @@ class GameLevelProvider extends AutoDisposeProvider<GameLevelReference> {
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 mixin GameLevelRef on AutoDisposeProviderRef<GameLevelReference> {
-  /// The parameter `path` of this provider.
-  String get path;
-
   /// The parameter `id` of this provider.
   String get id;
 }
@@ -629,9 +345,68 @@ class _GameLevelProviderElement
   _GameLevelProviderElement(super.provider);
 
   @override
-  String get path => (origin as GameLevelProvider).path;
-  @override
   String get id => (origin as GameLevelProvider).id;
 }
+
+String _$levelEditorContextHash() =>
+    r'ec3e412c7c5b7f73f3db5d62e19b5b6bd5403676';
+
+/// Ensure [levelEditorContextNotifierProvider] is not `null`.
+///
+/// Copied from [levelEditorContext].
+@ProviderFor(levelEditorContext)
+final levelEditorContextProvider =
+    AutoDisposeProvider<LevelEditorContext>.internal(
+  levelEditorContext,
+  name: r'levelEditorContextProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$levelEditorContextHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef LevelEditorContextRef = AutoDisposeProviderRef<LevelEditorContext>;
+String _$footstepSoundsHash() => r'bb060f2902835928532d4a7b7226f6ceda286867';
+
+/// Provide all the footstep sounds.
+///
+/// Copied from [footstepSounds].
+@ProviderFor(footstepSounds)
+final footstepSoundsProvider =
+    AutoDisposeProvider<Map<String, List<String>>>.internal(
+  footstepSounds,
+  name: r'footstepSoundsProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$footstepSoundsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef FootstepSoundsRef = AutoDisposeProviderRef<Map<String, List<String>>>;
+String _$levelEditorContextNotifierHash() =>
+    r'f72b5374d29a9de17a91d16d8db179bc1472322c';
+
+/// Provide a level editor context.
+///
+/// Copied from [LevelEditorContextNotifier].
+@ProviderFor(LevelEditorContextNotifier)
+final levelEditorContextNotifierProvider = AutoDisposeNotifierProvider<
+    LevelEditorContextNotifier, LevelEditorContext?>.internal(
+  LevelEditorContextNotifier.new,
+  name: r'levelEditorContextNotifierProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$levelEditorContextNotifierHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$LevelEditorContextNotifier = AutoDisposeNotifier<LevelEditorContext?>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -10,9 +10,7 @@ GameLevelTerrainReference _$GameLevelTerrainReferenceFromJson(
         Map<String, dynamic> json) =>
     GameLevelTerrainReference(
       id: json['id'] as String,
-      footstepSounds: (json['footstepSounds'] as List<dynamic>)
-          .map((e) => e as String)
-          .toList(),
+      footstepSounds: json['footstepSounds'] as String,
       name: json['name'] as String? ?? 'Untitled Terrain',
       footstepSoundsGain:
           (json['footstepSoundsGain'] as num?)?.toDouble() ?? 0.7,

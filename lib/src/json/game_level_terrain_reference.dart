@@ -25,7 +25,7 @@ class GameLevelTerrainReference {
   String name;
 
   /// The list of footstep sounds for this terrain.
-  final List<String> footstepSounds;
+  final String footstepSounds;
 
   /// The gain of the [footstepSounds].
   double footstepSoundsGain;

@@ -4,7 +4,6 @@ import 'package:backstreets_widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../extensions.dart';
 import '../constants.dart';
 import '../json/game_level_terrain_reference.dart';
 import '../providers.dart';
@@ -20,8 +19,7 @@ class TerrainsScreen extends ConsumerWidget {
   /// Build the widget.
   @override
   Widget build(final BuildContext context, final WidgetRef ref) {
-    final editor = context.levelEditor;
-    final terrains = ref.watch(terrainsProvider(editor.terrainsFilename));
+    final terrains = ref.watch(terrainsProvider);
     final Widget child;
     if (terrains.isEmpty) {
       child = const CenterText(
@@ -34,9 +32,7 @@ class TerrainsScreen extends ConsumerWidget {
           final terrain = terrains[index];
           return CommonShortcuts(
             deleteCallback: () {
-              final levels = ref.read(
-                GameLevelsProvider(editor.levelsDirectory),
-              );
+              final levels = ref.read(gameLevelsProvider);
               for (final level in levels) {
                 for (final platform in level.platforms) {
                   if (platform.terrainId == terrain.id) {
@@ -85,9 +81,12 @@ class TerrainsScreen extends ConsumerWidget {
 
   /// Create a new terrain.
   void newTerrain(final WidgetRef ref) {
-    final editor = ref.context.levelEditor;
-    final terrains = ref.read(terrainsProvider(editor.terrainsFilename));
-    final terrain = GameLevelTerrainReference(id: newId(), footstepSounds: []);
+    final editor = ref.read(levelEditorContextProvider);
+    final terrains = ref.read(terrainsProvider);
+    final terrain = GameLevelTerrainReference(
+      id: newId(),
+      footstepSounds: editor.footstepSounds.keys.first,
+    );
     terrains.add(terrain);
     saveTerrains(ref: ref, terrains: terrains);
     ref.context.pushWidgetBuilder(

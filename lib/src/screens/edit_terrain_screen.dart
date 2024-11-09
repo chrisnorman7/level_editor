@@ -3,7 +3,6 @@ import 'package:backstreets_widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../extensions.dart';
 import '../constants.dart';
 import '../json/game_level_terrain_reference.dart';
 import '../providers.dart';
@@ -22,9 +21,8 @@ class EditTerrainScreen extends ConsumerWidget {
   /// Build the widget.
   @override
   Widget build(final BuildContext context, final WidgetRef ref) {
-    final editor = context.levelEditor;
     final terrain = ref.watch(
-      terrainProvider(editor.terrainsFilename, terrainId),
+      terrainProvider(terrainId),
     );
     return Cancel(
       child: SimpleScaffold(
@@ -65,8 +63,7 @@ class EditTerrainScreen extends ConsumerWidget {
     required final WidgetRef ref,
     required final GameLevelTerrainReference terrain,
   }) {
-    final editor = ref.context.levelEditor;
-    final terrains = ref.read(terrainsProvider(editor.terrainsFilename))
+    final terrains = ref.read(terrainsProvider)
       ..removeWhere((final t) => t.id == terrain.id);
     if (terrains.isEmpty) {
       terrains.add(terrain);

@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as path;
 
-import '../../extensions.dart';
 import '../constants.dart';
 import '../providers.dart';
 import '../widgets/level_editor.dart';
@@ -25,9 +24,9 @@ class EditLevelScreen extends ConsumerWidget {
   /// Build the widget.
   @override
   Widget build(final BuildContext context, final WidgetRef ref) {
-    final editor = context.levelEditor;
-    final levelsDirectory = editor.levelsDirectory;
-    final level = ref.watch(gameLevelProvider(levelsDirectory, levelId));
+    final editor = ref.watch(levelEditorContextProvider);
+    final levelsDirectory = editor.levelsDirectoryName;
+    final level = ref.watch(gameLevelProvider(levelId));
     return Cancel(
       child: TabbedScaffold(
         tabs: [

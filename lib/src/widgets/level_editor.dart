@@ -11,7 +11,6 @@ import 'package:flutter_audio_games/flutter_audio_games.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 
-import '../../extensions.dart';
 import '../constants.dart';
 import '../exceptions.dart';
 import '../json/game_level_platform_reference.dart';
@@ -67,7 +66,6 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
   /// Build a widget.
   @override
   Widget build(final BuildContext context) {
-    final editor = context.levelEditor;
     const shortcuts = <String>[
       'W: Move north',
       'D: move east',
@@ -79,10 +77,8 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
       'CTRL+L: link the current platform',
       'CTRL+/: show this help',
     ];
-    terrains = ref.watch(terrainsProvider(editor.terrainsFilename));
-    level = ref.watch(
-      GameLevelProvider(editor.levelsDirectory, widget.levelId),
-    );
+    terrains = ref.watch(terrainsProvider);
+    level = ref.watch(GameLevelProvider(widget.levelId));
     if (tiles.isEmpty) {
       rebuildTiles();
     }

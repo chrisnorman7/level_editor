@@ -1,50 +1,60 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_audio_games/flutter_audio_games.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:recase/recase.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'constants.dart';
 import 'json/game_level_reference.dart';
 import 'json/game_level_terrain_reference.dart';
 import 'json/game_level_terrains.dart';
+import 'level_editor_context.dart';
 
 part 'providers.g.dart';
 
-/// Provide the terrains from [filename].
+/// Provide the terrains that have been created.
 @riverpod
-List<GameLevelTerrainReference> terrains(
-  final Ref ref,
-  final String filename,
-) {
-  final file = File(filename);
+List<GameLevelTerrainReference> terrains(final Ref ref) {
+  final context = ref.watch(levelEditorContextProvider);
+  final file = File(context.terrainsFilename);
   final parent = file.parent;
   if (!parent.existsSync()) {
     parent.createSync(recursive: true);
   }
   if (!file.existsSync()) {
-    return [];
+    final footstepSounds = ref.read(footstepSoundsProvider);
+    return footstepSounds.keys
+        .map(
+          (final footstepSound) => GameLevelTerrainReference(
+            id: newId(),
+            footstepSounds: footstepSound,
+            name: footstepSound.titleCase,
+          ),
+        )
+        .toList();
   }
   final source = file.readAsStringSync();
   final map = jsonDecode(source) as Map<String, dynamic>;
   return GameLevelTerrains.fromJson(map).terrains;
 }
 
-/// Provide a single terrain with the given [id] from the terrains file at
-/// [filename].
+/// Provide the terrain with the given [id].
 @riverpod
 GameLevelTerrainReference terrain(
   final Ref ref,
-  final String filename,
   final String id,
 ) {
-  final terrains = ref.watch(terrainsProvider(filename));
+  final terrains = ref.watch(terrainsProvider);
   return terrains.firstWhere((final terrain) => terrain.id == id);
 }
 
-/// Provide all game levels loaded from the directory at [path].
+/// Provide all the created game levels.
 @riverpod
-List<GameLevelReference> gameLevels(final Ref ref, final String path) {
-  final directory = Directory(path);
+List<GameLevelReference> gameLevels(final Ref ref) {
+  final context = ref.watch(levelEditorContextProvider);
+  final directory = context.levelsDirectory;
   if (!directory.existsSync()) {
     directory.createSync(recursive: true);
   }
@@ -60,9 +70,51 @@ List<GameLevelReference> gameLevels(final Ref ref, final String path) {
 @riverpod
 GameLevelReference gameLevel(
   final Ref ref,
-  final String path,
   final String id,
 ) {
-  final levels = ref.watch(gameLevelsProvider(path));
+  final levels = ref.watch(gameLevelsProvider);
   return levels.firstWhere((final level) => level.id == id);
+}
+
+/// Provide a level editor context.
+@riverpod
+class LevelEditorContextNotifier extends _$LevelEditorContextNotifier {
+  /// Build the value.
+  @override
+  LevelEditorContext? build() => null;
+
+  /// Set [state].
+  void setContext({
+    required final Sound wallSound,
+    required final Map<String, List<String>> footstepSounds,
+    required final String levelsDirectory,
+    required final String terrainsFilename,
+    required final SoundType defaultSoundType,
+    required final JsonEncoder jsonEncoder,
+  }) =>
+      state = LevelEditorContext(
+        levelsDirectoryName: levelsDirectory,
+        terrainsFilename: terrainsFilename,
+        defaultSoundType: defaultSoundType,
+        wallSound: wallSound,
+        footstepSounds: footstepSounds,
+        jsonEncoder: jsonEncoder,
+      );
+}
+
+/// Ensure [levelEditorContextNotifierProvider] is not `null`.
+@riverpod
+LevelEditorContext levelEditorContext(final Ref ref) {
+  final value = ref.watch(levelEditorContextNotifierProvider);
+  if (value == null) {
+    throw StateError('No level editor context found.');
+  }
+  return value;
+}
+
+/// Provide all the footstep sounds.
+@riverpod
+Map<String, List<String>> footstepSounds(final Ref ref) {
+  final context = ref.watch(levelEditorContextProvider);
+  return context.footstepSounds;
 }
