@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../level_editor.dart';
 import '../providers.dart';
+import '../undoable_action.dart';
 import 'performable_actions/performable_action.dart';
 import 'performable_actions/performable_actions.dart';
 
@@ -23,7 +24,7 @@ class TileCard extends ConsumerWidget {
     required this.levelId,
     required this.tile,
     required this.coordinates,
-    required this.onTileChange,
+    required this.performAction,
     this.autofocus = false,
     super.key,
   });
@@ -39,8 +40,8 @@ class TileCard extends ConsumerWidget {
   /// The coordinates of the tile.
   final Point<int> coordinates;
 
-  /// The function to call when [tile] changes.
-  final VoidCallback onTileChange;
+  /// The function to call to perform an action.
+  final void Function(UndoableAction action) performAction;
 
   /// Whether the resulting [Focus] should be autofocused.
   final bool autofocus;
@@ -82,16 +83,24 @@ class TileCard extends ConsumerWidget {
               ),
               invoke: () {
                 context.pushWidgetBuilder(
-                  (final getTextContext) => GetText(
-                    onDone: (final value) {
-                      Navigator.pop(getTextContext);
-                      platform.name = value;
-                      onTileChange();
-                    },
-                    labelText: 'Platform name',
-                    text: platform.name,
-                    title: 'Rename Platform',
-                  ),
+                  (final getTextContext) {
+                    final oldName = platform.name;
+                    return GetText(
+                      onDone: (final value) {
+                        Navigator.pop(getTextContext);
+                        final action = UndoableAction(
+                          perform: () {
+                            platform.name = value;
+                          },
+                          undo: () => platform.name = oldName,
+                        );
+                        performAction(action);
+                      },
+                      labelText: 'Platform name',
+                      text: oldName,
+                      title: 'Rename Platform',
+                    );
+                  },
                 );
               },
             ),
@@ -116,10 +125,17 @@ class TileCard extends ConsumerWidget {
                   title: 'Confirm Delete',
                   yesCallback: () {
                     Navigator.pop(context);
-                    level.platforms.removeWhere(
-                      (final other) => other.id == platform.id,
+                    final action = UndoableAction(
+                      perform: () {
+                        level.platforms.removeWhere(
+                          (final other) => other.id == platform.id,
+                        );
+                      },
+                      undo: () {
+                        level.platforms.add(platform);
+                      },
                     );
-                    onTileChange();
+                    performAction(action);
                   },
                 );
               },
@@ -149,8 +165,16 @@ class TileCard extends ConsumerWidget {
                     }
                   }
                 }
-                level.platforms.add(platform);
-                onTileChange();
+                final action = UndoableAction(
+                  perform: () {
+                    level.platforms.add(platform);
+                  },
+                  undo: () {
+                    level.platforms
+                        .removeWhere((final other) => other.id == platform.id);
+                  },
+                );
+                performAction(action);
               },
             ),
         ],

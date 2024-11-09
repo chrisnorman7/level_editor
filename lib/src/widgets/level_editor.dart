@@ -17,6 +17,7 @@ import '../json/game_level_platform_reference.dart';
 import '../json/game_level_reference.dart';
 import '../json/game_level_terrain_reference.dart';
 import '../providers.dart';
+import '../undoable_action.dart';
 import 'tile_card.dart';
 
 /// A widget for editing the level with the given [levelId].
@@ -41,6 +42,12 @@ class LevelEditor extends ConsumerStatefulWidget {
 
 /// State for [LevelEditor].
 class LevelEditorState extends ConsumerState<LevelEditor> {
+  /// The undo queue.
+  late final List<UndoableAction> undoActions;
+
+  /// The list of redo actions.
+  late final List<UndoableAction> redoActions;
+
   /// The random number generator to use.
   late final Random random;
 
@@ -63,6 +70,8 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
   @override
   void initState() {
     super.initState();
+    undoActions = [];
+    redoActions = [];
     random = Random();
     tiles = {};
     setCoordinates(widget.startCoordinates);
@@ -73,6 +82,8 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
   Widget build(final BuildContext context) {
     const shortcuts = <String>[
       'CTRL+S: Save the level',
+      'CTRL+Z: Undo most recent action',
+      'CTRL+Y: Redo most recent action',
       'W: Move north',
       'D: move east',
       'S: Move south',
@@ -144,6 +155,34 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
               control: useControlKey,
               meta: useMetaKey,
             ): () => saveLevel(ref: ref, level: level),
+            SingleActivator(
+              LogicalKeyboardKey.keyZ,
+              control: useControlKey,
+              meta: useMetaKey,
+            ): () {
+              if (undoActions.isEmpty) {
+                context.announce('There is nothing to do.');
+              } else {
+                final action = undoActions.removeLast();
+                redoActions.add(action);
+                action.undo();
+                setState(rebuildTiles);
+              }
+            },
+            SingleActivator(
+              LogicalKeyboardKey.keyY,
+              control: useControlKey,
+              meta: useMetaKey,
+            ): () {
+              if (redoActions.isEmpty) {
+                context.announce('There is nothing to redo.');
+              } else {
+                final action = redoActions.removeLast();
+                undoActions.add(action);
+                action.perform();
+                setState(rebuildTiles);
+              }
+            },
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,7 +208,7 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
                             coordinates.x + column,
                             coordinates.y + row,
                           ),
-                          onTileChange: () => setState(rebuildTiles),
+                          performAction: performAction,
                         ),
                     ],
                   ),
@@ -254,5 +293,12 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
             direction);
     final platform = platforms[index % platforms.length];
     setCoordinates(platform.start);
+  }
+
+  /// Perform an action.
+  void performAction(final UndoableAction action) {
+    action.perform();
+    undoActions.add(action);
+    setState(rebuildTiles);
   }
 }
