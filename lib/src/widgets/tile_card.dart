@@ -67,6 +67,7 @@ class TileCard extends ConsumerWidget {
     }
     final tileName = tile?.name ?? '<Wall>';
     return PlaySoundSemantics(
+      key: ValueKey(tile?.id ?? 'wall'),
       sound: sound,
       child: PerformableActions(
         actions: [
