@@ -168,7 +168,9 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
                             coordinates.x + column,
                             coordinates.y + row,
                           ),
-                          onTileChange: () => setState(() {}),
+                          onTileChange: () => setState(() {
+                            tiles.clear();
+                          }),
                         ),
                     ],
                   ),
