@@ -169,9 +169,7 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
                             coordinates.x + column,
                             coordinates.y + row,
                           ),
-                          onTileChange: () => setState(() {
-                            tiles.clear();
-                          }),
+                          onTileChange: () => setState(rebuildTiles),
                         ),
                     ],
                   ),
@@ -257,6 +255,4 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
     final platform = platforms[index % platforms.length];
     setCoordinates(platform.start);
   }
-
-  /// Create a new platform.
 }
