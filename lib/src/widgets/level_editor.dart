@@ -125,13 +125,13 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
                   ),
                 ),
             const SingleActivator(LogicalKeyboardKey.keyW): () =>
-                moveCamera(MovingDirection.forwards, rows),
+                moveCamera(MovingDirection.forwards, rows + 1),
             const SingleActivator(LogicalKeyboardKey.keyA): () =>
-                moveCamera(MovingDirection.left, columns),
+                moveCamera(MovingDirection.left, columns + 1),
             const SingleActivator(LogicalKeyboardKey.keyS): () =>
-                moveCamera(MovingDirection.backwards, rows),
+                moveCamera(MovingDirection.backwards, rows + 1),
             const SingleActivator(LogicalKeyboardKey.keyD): () =>
-                moveCamera(MovingDirection.right, columns),
+                moveCamera(MovingDirection.right, columns + 1),
             const SingleActivator(LogicalKeyboardKey.bracketRight): () =>
                 switchPlatforms(1),
             const SingleActivator(LogicalKeyboardKey.bracketLeft): () =>
@@ -142,15 +142,19 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
               meta: useMetaKey,
             ): newPlatform,
           },
-          child: Expanded(
-            child: Column(
-              children: [
-                for (var row = rows; row >= 0; row--)
-                  Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var row = rows; row >= 0; row--)
+                Expanded(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       for (var column = 0; column <= columns; column++)
                         Focus(
+                          autofocus: row == 0 && column == 0,
                           child: TileCard(
                             random: random,
                             tile: getTileAt(
@@ -167,8 +171,8 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
                         ),
                     ],
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
         );
       },

@@ -47,18 +47,24 @@ class TileCard extends ConsumerWidget {
       );
       sound = footstepSounds.randomElement(random);
     }
+    final tileName = tile?.name ?? '<Wall>';
     return PlaySoundSemantics(
       sound: sound,
-      child: Card(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('${coordinates.x}, ${coordinates.y}'),
-            Expanded(
-              flex: 3,
-              child: Text(tile?.name ?? '<Wall>'),
-            ),
-          ],
+      child: Semantics(
+        excludeSemantics: true,
+        inMutuallyExclusiveGroup: true,
+        label: '${coordinates.x}, ${coordinates.y}: $tileName',
+        child: Card(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('${coordinates.x}, ${coordinates.y}'),
+              Expanded(
+                flex: 3,
+                child: Text(tileName),
+              ),
+            ],
+          ),
         ),
       ),
     );
