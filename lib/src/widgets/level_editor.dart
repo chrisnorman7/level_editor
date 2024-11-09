@@ -40,6 +40,9 @@ class LevelEditor extends ConsumerStatefulWidget {
 
 /// State for [LevelEditor].
 class LevelEditorState extends ConsumerState<LevelEditor> {
+  /// The random number generator to use.
+  late final Random random;
+
   /// The level to work with.
   late GameLevelReference level;
 
@@ -59,6 +62,7 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
   @override
   void initState() {
     super.initState();
+    random = Random();
     tiles = {};
     setCoordinates(widget.startCoordinates);
   }
@@ -66,6 +70,7 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
   /// Build a widget.
   @override
   Widget build(final BuildContext context) {
+    final editor = ref.watch(levelEditorContextProvider);
     const shortcuts = <String>[
       'W: Move north',
       'D: move east',
@@ -83,6 +88,21 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
       rebuildTiles();
     }
     final tile = getTileAt(coordinates);
+    final Sound sound;
+    if (tile == null) {
+      sound = editor.wallSound;
+    } else {
+      final terrain = ref.read(terrainProvider(tile.terrainId));
+      final footstepSounds = ref.read(
+        footstepsProvider(
+          key: terrain.footstepSounds,
+          destroy: true,
+          volume: terrain.footstepSoundsGain,
+        ),
+      );
+      sound = footstepSounds.randomElement(random);
+    }
+    context.playSound(sound);
     return CallbackShortcuts(
       bindings: {
         SingleActivator(
