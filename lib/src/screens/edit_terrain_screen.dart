@@ -41,6 +41,15 @@ class EditTerrainScreen extends ConsumerWidget {
               labelText: 'Terrain name',
               title: 'Rename Terrain',
             ),
+            DurationListTile(
+              duration: terrain.footstepInterval,
+              onChanged: (final duration) {
+                terrain.footstepInterval = duration;
+                saveTerrain(ref: ref, terrain: terrain);
+              },
+              title: 'Walk speed',
+              screenTitle: 'Edit Walk Speed',
+            ),
             DoubleListTile(
               value: terrain.footstepSoundsGain,
               onChanged: (final gain) {
