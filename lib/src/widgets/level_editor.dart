@@ -140,11 +140,6 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
             const SingleActivator(LogicalKeyboardKey.bracketLeft): () =>
                 switchPlatforms(-1),
             SingleActivator(
-              LogicalKeyboardKey.keyN,
-              control: useControlKey,
-              meta: useMetaKey,
-            ): newPlatform,
-            SingleActivator(
               LogicalKeyboardKey.keyS,
               control: useControlKey,
               meta: useMetaKey,
@@ -264,26 +259,4 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
   }
 
   /// Create a new platform.
-  void newPlatform() {
-    final platform = GameLevelPlatformReference(
-      id: newId(),
-      terrainId: terrains.first.id,
-      startX: max(0, coordinates.x),
-      startY: max(0, coordinates.y),
-    );
-    if (coordinates.x < 0 || coordinates.y < 0) {
-      for (final platform in platforms) {
-        if (coordinates.x < 0) {
-          platform.startX -= coordinates.x;
-        }
-        if (coordinates.y < 0) {
-          platform.startY -= coordinates.y;
-        }
-      }
-    }
-    platforms.add(platform);
-    rebuildTiles();
-    setCoordinates(platform.start);
-    setState(() {});
-  }
 }
