@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_audio_games/flutter_audio_games.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:recase/recase.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -117,4 +118,39 @@ LevelEditorContext levelEditorContext(final Ref ref) {
 Map<String, List<String>> footstepSounds(final Ref ref) {
   final context = ref.watch(levelEditorContextProvider);
   return context.footstepSounds;
+}
+
+/// Provide a list of footstep sounds from the given [key].
+@riverpod
+List<Sound> footsteps(
+  final Ref ref, {
+  required final String key,
+  required final bool destroy,
+  final LoadMode loadMode = LoadMode.memory,
+  final bool looping = false,
+  final Duration loopingStart = Duration.zero,
+  final bool paused = false,
+  final SoundPosition position = unpanned,
+  final double volume = 0.7,
+}) {
+  final editor = ref.watch(levelEditorContextProvider);
+  final sounds = ref.watch(footstepSoundsProvider);
+  final filenames = sounds[key];
+  if (filenames == null) {
+    throw StateError('No such foot step sound: $key.');
+  }
+  return filenames
+      .map(
+        (final filename) => filename.asSound(
+          destroy: destroy,
+          soundType: editor.defaultSoundType,
+          loadMode: loadMode,
+          looping: looping,
+          loopingStart: loopingStart,
+          paused: paused,
+          position: position,
+          volume: volume,
+        ),
+      )
+      .toList();
 }

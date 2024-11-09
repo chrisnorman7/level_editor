@@ -4,6 +4,7 @@
     "Colors",
     "recase",
     "riverpod",
-    "soloud"
+    "soloud",
+    "unpanned"
   ]
 }

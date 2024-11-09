@@ -2,6 +2,7 @@ import 'package:backstreets_widgets/extensions.dart';
 import 'package:backstreets_widgets/screens.dart';
 import 'package:backstreets_widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_audio_games/flutter_audio_games.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../constants.dart';
@@ -30,32 +31,49 @@ class TerrainsScreen extends ConsumerWidget {
       child = ListView.builder(
         itemBuilder: (final context, final index) {
           final terrain = terrains[index];
-          return CommonShortcuts(
-            deleteCallback: () {
-              final levels = ref.read(gameLevelsProvider);
-              for (final level in levels) {
-                for (final platform in level.platforms) {
-                  if (platform.terrainId == terrain.id) {
-                    context.showMessage(
-                      message:
-                          // ignore: lines_longer_than_80_chars
-                          'This terrain is being used by the ${platform.name} platform of the ${level.name} level.',
-                    );
-                    return;
+          final footstepSounds = ref.read(
+            footstepsProvider(
+              key: terrain.footstepSounds,
+              destroy: false,
+            ),
+          );
+          return PlaySoundsSemantics(
+            interval: terrain.footstepInterval,
+            sounds: footstepSounds,
+            child: Builder(
+              builder: (final builderContext) => CommonShortcuts(
+                deleteCallback: () {
+                  final levels = ref.read(gameLevelsProvider);
+                  for (final level in levels) {
+                    for (final platform in level.platforms) {
+                      if (platform.terrainId == terrain.id) {
+                        context.showMessage(
+                          message:
+                              // ignore: lines_longer_than_80_chars
+                              'This terrain is being used by the ${platform.name} platform of the ${level.name} level.',
+                        );
+                        return;
+                      }
+                    }
                   }
-                }
-              }
-              terrains.removeWhere((final t) => t.id == terrain.id);
-              saveTerrains(
-                ref: ref,
-                terrains: terrains,
-              );
-            },
-            child: ListTile(
-              autofocus: index == 0,
-              title: Text(terrain.name),
-              onTap: () => context.pushWidgetBuilder(
-                (final _) => EditTerrainScreen(terrainId: terrain.id),
+                  terrains.removeWhere((final t) => t.id == terrain.id);
+                  saveTerrains(
+                    ref: ref,
+                    terrains: terrains,
+                  );
+                },
+                child: ListTile(
+                  autofocus: index == 0,
+                  title: Text(terrain.name),
+                  onTap: () {
+                    builderContext.pushWidgetBuilder(
+                      (final _) {
+                        builderContext.stopPlaySoundsSemantics();
+                        return EditTerrainScreen(terrainId: terrain.id);
+                      },
+                    );
+                  },
+                ),
               ),
             ),
           );

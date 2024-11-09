@@ -6,7 +6,7 @@ part of 'providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$terrainsHash() => r'6b2c86330c6e6e3b8295b0fd07e7acb6de60842d';
+String _$terrainsHash() => r'2ed503bba665fee7391e1ac161e6482d7381edce';
 
 /// Provide the terrains that have been created.
 ///
@@ -389,6 +389,260 @@ final footstepSoundsProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef FootstepSoundsRef = AutoDisposeProviderRef<Map<String, List<String>>>;
+String _$footstepsHash() => r'd1f187c62dfbff41151f131be440ad8473c08a19';
+
+/// Provide a list of footstep sounds from the given [key].
+///
+/// Copied from [footsteps].
+@ProviderFor(footsteps)
+const footstepsProvider = FootstepsFamily();
+
+/// Provide a list of footstep sounds from the given [key].
+///
+/// Copied from [footsteps].
+class FootstepsFamily extends Family<List<Sound>> {
+  /// Provide a list of footstep sounds from the given [key].
+  ///
+  /// Copied from [footsteps].
+  const FootstepsFamily();
+
+  /// Provide a list of footstep sounds from the given [key].
+  ///
+  /// Copied from [footsteps].
+  FootstepsProvider call({
+    required String key,
+    required bool destroy,
+    LoadMode loadMode = LoadMode.memory,
+    bool looping = false,
+    Duration loopingStart = Duration.zero,
+    bool paused = false,
+    SoundPosition position = unpanned,
+    double volume = 0.7,
+  }) {
+    return FootstepsProvider(
+      key: key,
+      destroy: destroy,
+      loadMode: loadMode,
+      looping: looping,
+      loopingStart: loopingStart,
+      paused: paused,
+      position: position,
+      volume: volume,
+    );
+  }
+
+  @override
+  FootstepsProvider getProviderOverride(
+    covariant FootstepsProvider provider,
+  ) {
+    return call(
+      key: provider.key,
+      destroy: provider.destroy,
+      loadMode: provider.loadMode,
+      looping: provider.looping,
+      loopingStart: provider.loopingStart,
+      paused: provider.paused,
+      position: provider.position,
+      volume: provider.volume,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'footstepsProvider';
+}
+
+/// Provide a list of footstep sounds from the given [key].
+///
+/// Copied from [footsteps].
+class FootstepsProvider extends AutoDisposeProvider<List<Sound>> {
+  /// Provide a list of footstep sounds from the given [key].
+  ///
+  /// Copied from [footsteps].
+  FootstepsProvider({
+    required String key,
+    required bool destroy,
+    LoadMode loadMode = LoadMode.memory,
+    bool looping = false,
+    Duration loopingStart = Duration.zero,
+    bool paused = false,
+    SoundPosition position = unpanned,
+    double volume = 0.7,
+  }) : this._internal(
+          (ref) => footsteps(
+            ref as FootstepsRef,
+            key: key,
+            destroy: destroy,
+            loadMode: loadMode,
+            looping: looping,
+            loopingStart: loopingStart,
+            paused: paused,
+            position: position,
+            volume: volume,
+          ),
+          from: footstepsProvider,
+          name: r'footstepsProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$footstepsHash,
+          dependencies: FootstepsFamily._dependencies,
+          allTransitiveDependencies: FootstepsFamily._allTransitiveDependencies,
+          key: key,
+          destroy: destroy,
+          loadMode: loadMode,
+          looping: looping,
+          loopingStart: loopingStart,
+          paused: paused,
+          position: position,
+          volume: volume,
+        );
+
+  FootstepsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.key,
+    required this.destroy,
+    required this.loadMode,
+    required this.looping,
+    required this.loopingStart,
+    required this.paused,
+    required this.position,
+    required this.volume,
+  }) : super.internal();
+
+  final String key;
+  final bool destroy;
+  final LoadMode loadMode;
+  final bool looping;
+  final Duration loopingStart;
+  final bool paused;
+  final SoundPosition position;
+  final double volume;
+
+  @override
+  Override overrideWith(
+    List<Sound> Function(FootstepsRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: FootstepsProvider._internal(
+        (ref) => create(ref as FootstepsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        key: key,
+        destroy: destroy,
+        loadMode: loadMode,
+        looping: looping,
+        loopingStart: loopingStart,
+        paused: paused,
+        position: position,
+        volume: volume,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeProviderElement<List<Sound>> createElement() {
+    return _FootstepsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is FootstepsProvider &&
+        other.key == key &&
+        other.destroy == destroy &&
+        other.loadMode == loadMode &&
+        other.looping == looping &&
+        other.loopingStart == loopingStart &&
+        other.paused == paused &&
+        other.position == position &&
+        other.volume == volume;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, key.hashCode);
+    hash = _SystemHash.combine(hash, destroy.hashCode);
+    hash = _SystemHash.combine(hash, loadMode.hashCode);
+    hash = _SystemHash.combine(hash, looping.hashCode);
+    hash = _SystemHash.combine(hash, loopingStart.hashCode);
+    hash = _SystemHash.combine(hash, paused.hashCode);
+    hash = _SystemHash.combine(hash, position.hashCode);
+    hash = _SystemHash.combine(hash, volume.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin FootstepsRef on AutoDisposeProviderRef<List<Sound>> {
+  /// The parameter `key` of this provider.
+  String get key;
+
+  /// The parameter `destroy` of this provider.
+  bool get destroy;
+
+  /// The parameter `loadMode` of this provider.
+  LoadMode get loadMode;
+
+  /// The parameter `looping` of this provider.
+  bool get looping;
+
+  /// The parameter `loopingStart` of this provider.
+  Duration get loopingStart;
+
+  /// The parameter `paused` of this provider.
+  bool get paused;
+
+  /// The parameter `position` of this provider.
+  SoundPosition get position;
+
+  /// The parameter `volume` of this provider.
+  double get volume;
+}
+
+class _FootstepsProviderElement extends AutoDisposeProviderElement<List<Sound>>
+    with FootstepsRef {
+  _FootstepsProviderElement(super.provider);
+
+  @override
+  String get key => (origin as FootstepsProvider).key;
+  @override
+  bool get destroy => (origin as FootstepsProvider).destroy;
+  @override
+  LoadMode get loadMode => (origin as FootstepsProvider).loadMode;
+  @override
+  bool get looping => (origin as FootstepsProvider).looping;
+  @override
+  Duration get loopingStart => (origin as FootstepsProvider).loopingStart;
+  @override
+  bool get paused => (origin as FootstepsProvider).paused;
+  @override
+  SoundPosition get position => (origin as FootstepsProvider).position;
+  @override
+  double get volume => (origin as FootstepsProvider).volume;
+}
+
 String _$levelEditorContextNotifierHash() =>
     r'f72b5374d29a9de17a91d16d8db179bc1472322c';
 
