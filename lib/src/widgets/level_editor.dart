@@ -80,6 +80,8 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
       '[: Move to previous platform',
       'CTRL+N: New platform',
       'CTRL+L: link the current platform',
+      'CTRL+R: Rename the current platform',
+      'DELETE: Delete the current platform',
       'CTRL+/: show this help',
     ];
     terrains = ref.watch(terrainsProvider);
@@ -153,21 +155,20 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       for (var column = 0; column <= columns; column++)
-                        Focus(
+                        TileCard(
                           autofocus: row == 0 && column == 0,
-                          child: TileCard(
-                            random: random,
-                            tile: getTileAt(
-                              Point(
-                                coordinates.x + column,
-                                coordinates.y + row,
-                              ),
-                            ),
-                            coordinates: Point(
+                          levelId: widget.levelId,
+                          tile: getTileAt(
+                            Point(
                               coordinates.x + column,
                               coordinates.y + row,
                             ),
                           ),
+                          coordinates: Point(
+                            coordinates.x + column,
+                            coordinates.y + row,
+                          ),
+                          onTileChange: () => setState(() {}),
                         ),
                     ],
                   ),
