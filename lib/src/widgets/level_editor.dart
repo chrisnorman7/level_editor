@@ -72,6 +72,7 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
   @override
   Widget build(final BuildContext context) {
     const shortcuts = <String>[
+      'CTRL+S: Save the level',
       'W: Move north',
       'D: move east',
       'S: Move south',
@@ -143,6 +144,11 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
               control: useControlKey,
               meta: useMetaKey,
             ): newPlatform,
+            SingleActivator(
+              LogicalKeyboardKey.keyS,
+              control: useControlKey,
+              meta: useMetaKey,
+            ): () => saveLevel(ref: ref, level: level),
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

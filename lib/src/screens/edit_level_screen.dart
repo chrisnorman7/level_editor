@@ -87,6 +87,9 @@ class EditLevelScreen extends ConsumerWidget {
           TabbedScaffoldTab(
             title: 'Editor',
             icon: const Icon(Icons.edit),
+            actions: [
+              SaveButton(onPressed: () => saveLevel(ref: ref, level: level)),
+            ],
             builder: (final _) => LevelEditor(levelId: levelId),
           ),
         ],
