@@ -38,7 +38,11 @@ List<GameLevelTerrainReference> terrains(final Ref ref) {
   }
   final source = file.readAsStringSync();
   final map = jsonDecode(source) as Map<String, dynamic>;
-  return GameLevelTerrains.fromJson(map).terrains;
+  return GameLevelTerrains.fromJson(map).terrains
+    ..sort(
+      (final a, final b) =>
+          a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+    );
 }
 
 /// Provide the terrain with the given [id].
@@ -64,7 +68,11 @@ List<GameLevelReference> gameLevels(final Ref ref) {
     final source = file.readAsStringSync();
     final json = jsonDecode(source) as Map<String, dynamic>;
     return GameLevelReference.fromJson(json);
-  }).toList();
+  }).toList()
+    ..sort(
+      (final a, final b) =>
+          a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+    );
 }
 
 /// Provide a single game level reference with the given [id].

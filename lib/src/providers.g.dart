@@ -6,7 +6,7 @@ part of 'providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$terrainsHash() => r'2ed503bba665fee7391e1ac161e6482d7381edce';
+String _$terrainsHash() => r'729ea204b01a8a91c66aeb4f1e6025ff5e3a1f48';
 
 /// Provide the terrains that have been created.
 ///
@@ -188,7 +188,7 @@ class _TerrainProviderElement
   String get id => (origin as TerrainProvider).id;
 }
 
-String _$gameLevelsHash() => r'358ddb1b77d57bfef0e8c4963717b20434b7f620';
+String _$gameLevelsHash() => r'1da5081edd0727584a64008d081f322adb094cf2';
 
 /// Provide all the created game levels.
 ///
