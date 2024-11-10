@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_audio_games/flutter_audio_games.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../level_editor.dart';
+import '../constants.dart';
 import '../providers.dart';
 import '../widgets/terrain_list_tile.dart';
 import 'select_terrain_screen.dart';
@@ -15,13 +15,13 @@ import 'select_terrain_screen.dart';
 class EditPlatformScreen extends ConsumerWidget {
   /// Create an instance.
   const EditPlatformScreen({
-    required this.platform,
+    required this.platformId,
     required this.levelId,
     super.key,
   });
 
-  /// The platform to edit.
-  final GameLevelPlatformReference platform;
+  /// The ID of the platform to edit.
+  final String platformId;
 
   /// The ID of the level that [platform] belongs to.
   final String levelId;
@@ -29,8 +29,7 @@ class EditPlatformScreen extends ConsumerWidget {
   /// Build the widget.
   @override
   Widget build(final BuildContext context, final WidgetRef ref) {
-    final provider = gameLevelProvider(levelId);
-    final terrain = ref.watch(terrainProvider(platform.terrainId));
+    final platform = ref.watch(platformProvider(levelId, platformId));
     return Cancel(
       child: SimpleScaffold(
         title: 'Edit Platform',
@@ -41,7 +40,7 @@ class EditPlatformScreen extends ConsumerWidget {
               value: platform.name,
               onChanged: (final name) {
                 platform.name = name;
-                ref.invalidate(provider);
+                invalidateProviders(ref);
               },
               header: 'Name',
               autofocus: true,
@@ -56,8 +55,8 @@ class EditPlatformScreen extends ConsumerWidget {
                 return SelectTerrainScreen(
                   terrainId: platform.terrainId,
                   onChanged: (final value) {
-                    platform.terrainId = terrain.id;
-                    ref.invalidate(provider);
+                    platform.terrainId = value.id;
+                    invalidateProviders(ref);
                   },
                   title: 'Terrain',
                 );
@@ -67,5 +66,14 @@ class EditPlatformScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Invalidate providers.
+  void invalidateProviders(final WidgetRef ref) {
+    final level = ref.read(gameLevelProvider(levelId));
+    saveLevel(ref: ref, level: level);
+    ref
+      ..invalidate(gameLevelProvider(levelId))
+      ..invalidate(platformProvider(levelId, platformId));
   }
 }

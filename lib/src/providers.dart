@@ -7,10 +7,7 @@ import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:recase/recase.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'constants.dart';
-import 'json/game_level_reference.dart';
-import 'json/game_level_terrain_reference.dart';
-import 'json/game_level_terrains.dart';
+import '../level_editor.dart';
 import 'level_editor_context.dart';
 
 part 'providers.g.dart';
@@ -161,4 +158,16 @@ List<Sound> footsteps(
         ),
       )
       .toList();
+}
+
+/// Provide a single platform.
+@riverpod
+GameLevelPlatformReference platform(
+  final Ref ref,
+  final String levelId,
+  final String platformId,
+) {
+  final level = ref.watch(gameLevelProvider(levelId));
+  return level.platforms
+      .firstWhere((final platform) => platform.id == platformId);
 }

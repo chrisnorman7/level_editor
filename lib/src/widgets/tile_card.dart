@@ -189,8 +189,10 @@ class TileCard extends ConsumerWidget {
                   return null;
                 }
                 context.pushWidgetBuilder(
-                  (final _) =>
-                      EditPlatformScreen(platform: platform, levelId: levelId),
+                  (final _) => EditPlatformScreen(
+                    platformId: platform.id,
+                    levelId: levelId,
+                  ),
                 );
                 return null;
               },

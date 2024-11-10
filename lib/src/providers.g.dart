@@ -643,6 +643,165 @@ class _FootstepsProviderElement extends AutoDisposeProviderElement<List<Sound>>
   double get volume => (origin as FootstepsProvider).volume;
 }
 
+String _$platformHash() => r'109ff0c9a9866d00ceb1d971195afa21e59485d1';
+
+/// Provide a single platform.
+///
+/// Copied from [platform].
+@ProviderFor(platform)
+const platformProvider = PlatformFamily();
+
+/// Provide a single platform.
+///
+/// Copied from [platform].
+class PlatformFamily extends Family<GameLevelPlatformReference> {
+  /// Provide a single platform.
+  ///
+  /// Copied from [platform].
+  const PlatformFamily();
+
+  /// Provide a single platform.
+  ///
+  /// Copied from [platform].
+  PlatformProvider call(
+    String levelId,
+    String platformId,
+  ) {
+    return PlatformProvider(
+      levelId,
+      platformId,
+    );
+  }
+
+  @override
+  PlatformProvider getProviderOverride(
+    covariant PlatformProvider provider,
+  ) {
+    return call(
+      provider.levelId,
+      provider.platformId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'platformProvider';
+}
+
+/// Provide a single platform.
+///
+/// Copied from [platform].
+class PlatformProvider extends AutoDisposeProvider<GameLevelPlatformReference> {
+  /// Provide a single platform.
+  ///
+  /// Copied from [platform].
+  PlatformProvider(
+    String levelId,
+    String platformId,
+  ) : this._internal(
+          (ref) => platform(
+            ref as PlatformRef,
+            levelId,
+            platformId,
+          ),
+          from: platformProvider,
+          name: r'platformProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$platformHash,
+          dependencies: PlatformFamily._dependencies,
+          allTransitiveDependencies: PlatformFamily._allTransitiveDependencies,
+          levelId: levelId,
+          platformId: platformId,
+        );
+
+  PlatformProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.levelId,
+    required this.platformId,
+  }) : super.internal();
+
+  final String levelId;
+  final String platformId;
+
+  @override
+  Override overrideWith(
+    GameLevelPlatformReference Function(PlatformRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: PlatformProvider._internal(
+        (ref) => create(ref as PlatformRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        levelId: levelId,
+        platformId: platformId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeProviderElement<GameLevelPlatformReference> createElement() {
+    return _PlatformProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PlatformProvider &&
+        other.levelId == levelId &&
+        other.platformId == platformId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, levelId.hashCode);
+    hash = _SystemHash.combine(hash, platformId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin PlatformRef on AutoDisposeProviderRef<GameLevelPlatformReference> {
+  /// The parameter `levelId` of this provider.
+  String get levelId;
+
+  /// The parameter `platformId` of this provider.
+  String get platformId;
+}
+
+class _PlatformProviderElement
+    extends AutoDisposeProviderElement<GameLevelPlatformReference>
+    with PlatformRef {
+  _PlatformProviderElement(super.provider);
+
+  @override
+  String get levelId => (origin as PlatformProvider).levelId;
+  @override
+  String get platformId => (origin as PlatformProvider).platformId;
+}
+
 String _$levelEditorContextNotifierHash() =>
     r'f72b5374d29a9de17a91d16d8db179bc1472322c';
 
