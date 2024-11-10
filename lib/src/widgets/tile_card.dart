@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../level_editor.dart';
 import '../providers.dart';
 import '../screens/edit_platform_screen.dart';
+import '../screens/select_terrain_screen.dart';
 import '../undoable_action.dart';
 import 'performable_actions/performable_action.dart';
 import 'performable_actions/performable_actions.dart';
@@ -18,25 +19,25 @@ import 'performable_actions/performable_actions.dart';
 /// The random number generator to use.
 final random = Random();
 
-/// A widget to show the given [tile].
+/// A widget to show the given [platformId].
 class TileCard extends ConsumerWidget {
   /// Create an instance.
   const TileCard({
     required this.levelId,
-    required this.tile,
+    required this.platformId,
     required this.coordinates,
     required this.performAction,
     this.autofocus = false,
     super.key,
   });
 
-  /// The ID of the level that [tile] is part of.
+  /// The ID of the level that [platformId] is part of.
   final String levelId;
 
-  /// The platform at this tile.
+  /// The ID of the platform at [coordinates].
   ///
-  /// If [tile] is `null`, then [tile] is considered a wall.
-  final GameLevelPlatformReference? tile;
+  /// If [platformId] is `null`, then the platform is considered a wall.
+  final String? platformId;
 
   /// The coordinates of the tile.
   final Point<int> coordinates;
@@ -50,13 +51,16 @@ class TileCard extends ConsumerWidget {
   /// Build the widget.
   @override
   Widget build(final BuildContext context, final WidgetRef ref) {
+    final id = platformId;
+    final platform =
+        id == null ? null : ref.watch(platformProvider(levelId, id));
     final level = ref.watch(gameLevelProvider(levelId));
-    final platform = tile;
     final editor = ref.watch(levelEditorContextProvider);
-    final terrains = ref.watch(terrainsProvider);
     final Sound sound;
     final List<PerformableAction> actions;
+    final GameLevelTerrainReference? terrain;
     if (platform == null) {
+      terrain = null;
       sound = editor.wallSound;
       actions = [
         PerformableAction(
@@ -67,6 +71,7 @@ class TileCard extends ConsumerWidget {
             meta: useMetaKey,
           ),
           invoke: () {
+            final terrains = ref.read(terrainsProvider);
             final platform = GameLevelPlatformReference(
               id: newId(),
               terrainId: terrains.first.id,
@@ -97,10 +102,10 @@ class TileCard extends ConsumerWidget {
         ),
       ];
     } else {
-      final terrain = ref.watch(terrainProvider(platform.terrainId));
+      terrain = ref.watch(terrainProvider(platform.terrainId));
       final footstepSounds = ref.watch(
         footstepsProvider(
-          key: terrain.footstepSounds,
+          key: terrain!.footstepSounds,
           destroy: true,
           volume: terrain.footstepSoundsGain,
         ),
@@ -115,25 +120,48 @@ class TileCard extends ConsumerWidget {
             meta: useMetaKey,
           ),
           invoke: () {
+            final oldName = platform.name;
             context.pushWidgetBuilder(
-              (final getTextContext) {
-                final oldName = platform.name;
-                return GetText(
-                  onDone: (final value) {
-                    Navigator.pop(getTextContext);
-                    final action = UndoableAction(
-                      perform: () {
-                        platform.name = value;
-                      },
-                      undo: () => platform.name = oldName,
-                    );
-                    performAction(action);
-                  },
-                  labelText: 'Platform name',
-                  text: oldName,
-                  title: 'Rename Platform',
-                );
-              },
+              (final getTextContext) => GetText(
+                onDone: (final value) {
+                  Navigator.pop(getTextContext);
+                  final action = UndoableAction(
+                    perform: () => platform.name = value,
+                    undo: () => platform.name = oldName,
+                  );
+                  performAction(action);
+                },
+                labelText: 'Platform name',
+                text: oldName,
+                title: 'Rename Platform',
+              ),
+            );
+          },
+        ),
+        PerformableAction(
+          name: 'Change terrain',
+          activator: SingleActivator(
+            LogicalKeyboardKey.keyT,
+            control: useControlKey,
+            meta: useMetaKey,
+          ),
+          invoke: () {
+            final oldTerrainId = platform.terrainId;
+            context.pushWidgetBuilder(
+              (final _) => SelectTerrainScreen(
+                terrainId: platform.terrainId,
+                onChanged: (final value) {
+                  final action = UndoableAction(
+                    perform: () {
+                      platform.terrainId = value.id;
+                    },
+                    undo: () {
+                      platform.terrainId = oldTerrainId;
+                    },
+                  );
+                  performAction(action);
+                },
+              ),
             );
           },
         ),
@@ -176,7 +204,7 @@ class TileCard extends ConsumerWidget {
       ];
     }
     return PlaySoundSemantics(
-      key: ValueKey(tile?.id ?? 'wall'),
+      key: platform == null ? null : ValueKey(platform.toJson().toString()),
       sound: sound,
       child: PerformableActions(
         actions: actions,
@@ -201,7 +229,7 @@ class TileCard extends ConsumerWidget {
           child: Semantics(
             label:
                 // ignore: lines_longer_than_80_chars
-                '${coordinates.x}, ${coordinates.y}: ${platform?.name ?? 'Wall'}',
+                '${coordinates.x}, ${coordinates.y}: ${platform == null ? "Wall" : '${platform.name} (${terrain!.name})'}',
             child: Card(
               color: platform == null ? Colors.grey.shade300 : Colors.white,
               elevation: 3,
@@ -228,7 +256,7 @@ class TileCard extends ConsumerWidget {
                               Icons.crop_din,
                               semanticLabel: 'Wall',
                             )
-                          : Text(platform.name),
+                          : Text('${platform.name} (${terrain!.name})'),
                     ),
                   ],
                 ),

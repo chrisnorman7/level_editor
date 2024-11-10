@@ -93,6 +93,7 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
       'CTRL+N: New platform',
       'CTRL+L: link the current platform',
       'CTRL+R: Rename the current platform',
+      'CTRL+T: Change the platform terrain',
       'DELETE: Delete the current platform',
       'CTRL+/: show this help',
     ];
@@ -201,12 +202,12 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
                         TileCard(
                           autofocus: row == 0 && column == 0,
                           levelId: widget.levelId,
-                          tile: getTileAt(
+                          platformId: getTileAt(
                             Point(
                               coordinates.x + column,
                               coordinates.y + row,
                             ),
-                          ),
+                          )?.id,
                           coordinates: Point(
                             coordinates.x + column,
                             coordinates.y + row,
