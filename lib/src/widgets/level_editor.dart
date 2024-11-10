@@ -154,7 +154,10 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
               LogicalKeyboardKey.keyS,
               control: useControlKey,
               meta: useMetaKey,
-            ): () => saveLevel(ref: ref, level: level),
+            ): () {
+              saveLevel(ref: ref, level: level);
+              context.announce('Level saved.');
+            },
             SingleActivator(
               LogicalKeyboardKey.keyZ,
               control: useControlKey,

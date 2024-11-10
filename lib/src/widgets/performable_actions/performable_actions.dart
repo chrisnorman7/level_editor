@@ -20,31 +20,46 @@ class PerformableActions extends StatelessWidget {
 
   /// Build the widget.
   @override
-  Widget build(final BuildContext context) => Semantics(
-        customSemanticsActions: {
-          for (final action in actions)
-            CustomSemanticsAction(label: action.name): action.invoke,
-        },
-        child: MenuAnchor(
-          menuChildren: [
-            for (var i = 0; i < actions.length; i++)
-              MenuItemButton(
-                autofocus: i == 0,
-                onPressed: actions[i].invoke,
-                child: Text(actions[i].name),
-              ),
-          ],
-          builder: (final _, final controller, final __) => CallbackShortcuts(
-            bindings: {
-              for (final action in actions) action.activator: action.invoke,
-            },
-            child: GestureDetector(
-              onTap: () => toggleController(controller),
-              child: child,
+  Widget build(final BuildContext context) {
+    final actionNames = actions.map((final action) => action.name).toList();
+    return Semantics(
+      customSemanticsActions: {
+        for (final action in actions)
+          CustomSemanticsAction(label: action.name): action.invoke,
+      },
+      child: MenuAnchor(
+        menuChildren: [
+          for (var i = 0; i < actions.length; i++)
+            MenuItemButton(
+              autofocus: i == 0,
+              onPressed: actions[i].invoke,
+              child: Text(actions[i].name),
             ),
+        ],
+        builder: (final _, final controller, final __) => CallbackShortcuts(
+          bindings: {
+            for (final action in actions) action.activator: action.invoke,
+          },
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              child,
+              FocusScope(
+                canRequestFocus: false,
+                debugLabel: 'More options for actions [$actionNames].',
+                child: IconButton(
+                  onPressed: () => toggleController(controller),
+                  icon: const Icon(Icons.more_vert),
+                  tooltip: 'Show / hide menu',
+                ),
+              ),
+            ],
           ),
         ),
-      );
+      ),
+    );
+  }
 
   /// Toggle [controller] open or closed.
   void toggleController(final MenuController controller) {
