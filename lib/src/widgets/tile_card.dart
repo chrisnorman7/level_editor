@@ -29,6 +29,7 @@ class TileCard extends ConsumerWidget {
     required this.performAction,
     required this.linkingPlatformId,
     required this.linkPlatforms,
+    required this.showDependentPlatforms,
     this.autofocus = false,
     super.key,
   });
@@ -52,6 +53,9 @@ class TileCard extends ConsumerWidget {
 
   /// The function to call to link platforms.
   final VoidCallback linkPlatforms;
+
+  /// The function to call to show dependent platforms.
+  final VoidCallback showDependentPlatforms;
 
   /// Whether the resulting [Focus] should be autofocused.
   final bool autofocus;
@@ -127,6 +131,12 @@ class TileCard extends ConsumerWidget {
           ),
         );
       }
+      menuChildren.add(
+        MenuItemButton(
+          onPressed: showDependentPlatforms,
+          child: const Text('Show platform dependencies'),
+        ),
+      );
       if (linkingPlatformId == platform.id) {
         menuChildren.add(
           MenuItemButton(

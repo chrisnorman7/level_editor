@@ -18,7 +18,9 @@ import '../json/game_level_reference.dart';
 import '../json/game_level_terrain_reference.dart';
 import '../json/platform_link.dart';
 import '../providers.dart';
+import '../screens/edit_platform_screen.dart';
 import '../undoable_action.dart';
+import 'terrain_list_tile.dart';
 import 'tile_card.dart';
 
 /// A widget for editing the level with the given [levelId].
@@ -258,6 +260,11 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
                                     }
                                     linkPlatforms(tile);
                                   },
+                                  showDependentPlatforms: () =>
+                                      showPlatformDependencies(
+                                    builderContext,
+                                    tile!,
+                                  ),
                                 );
                               },
                             ),
@@ -363,14 +370,14 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
     setState(rebuildTiles);
   }
 
-  /// Return all platforms linked to [platform], including [platform] itself.
+  /// Return all platforms linked to [platform].
   Set<GameLevelPlatformReference> getLinkedPlatforms(
     final GameLevelPlatformReference platform,
   ) {
-    final links = {platform};
+    final links = <GameLevelPlatformReference>{};
     for (final other
         in platforms.where((final p) => p.link?.platformId == platform.id)) {
-      links.addAll(getLinkedPlatforms(other));
+      links.addAll([other, ...getLinkedPlatforms(other)]);
     }
     return links;
   }
@@ -403,5 +410,43 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
         linkingPlatformId = null;
       });
     }
+  }
+
+  /// Show all the platforms which depend on [platform] in a menu.
+  Future<void> showPlatformDependencies(
+    final BuildContext context,
+    final GameLevelPlatformReference platform,
+  ) {
+    final dependencies = getLinkedPlatforms(platform);
+    if (dependencies.isEmpty) {
+      return context.showMessage(message: 'This platform has no dependencies.');
+    }
+    return context.pushWidgetBuilder(
+      (final _) => Cancel(
+        child: SimpleScaffold(
+          title: 'Platform Dependencies',
+          body: ListView.builder(
+            itemBuilder: (final context, final index) {
+              final dependent = dependencies.elementAt(index);
+              return TerrainListTile(
+                autofocus: index == 0,
+                terrainId: dependent.terrainId,
+                title: dependent.name,
+                onTap: (final innerContext) => innerContext.pushWidgetBuilder(
+                  (final builderContext) {
+                    innerContext.stopPlaySoundsSemantics();
+                    return EditPlatformScreen(
+                      platformId: dependent.id,
+                      levelId: widget.levelId,
+                    );
+                  },
+                ),
+              );
+            },
+            itemCount: dependencies.length,
+          ),
+        ),
+      ),
+    );
   }
 }
