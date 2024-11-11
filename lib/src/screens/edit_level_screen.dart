@@ -27,13 +27,13 @@ class EditLevelScreen extends ConsumerWidget {
     final editor = ref.watch(levelEditorContextProvider);
     final levelsDirectory = editor.levelsDirectoryName;
     final level = ref.watch(gameLevelProvider(levelId));
-    return Cancel(
-      child: TabbedScaffold(
-        tabs: [
-          TabbedScaffoldTab(
-            title: 'Settings',
-            icon: const Icon(Icons.settings),
-            builder: (final _) => ListView(
+    return TabbedScaffold(
+      tabs: [
+        TabbedScaffoldTab(
+          title: 'Settings',
+          icon: const Icon(Icons.settings),
+          builder: (final _) => Cancel(
+            child: ListView(
               shrinkWrap: true,
               children: [
                 TextListTile(
@@ -84,17 +84,17 @@ class EditLevelScreen extends ConsumerWidget {
               ],
             ),
           ),
-          TabbedScaffoldTab(
-            title: 'Editor',
-            icon: const Icon(Icons.edit),
-            actions: [
-              SaveButton(onPressed: () => saveLevel(ref: ref, level: level)),
-            ],
-            builder: (final _) => LevelEditor(levelId: levelId),
-          ),
-        ],
-        initialPageIndex: 1,
-      ),
+        ),
+        TabbedScaffoldTab(
+          title: 'Editor',
+          icon: const Icon(Icons.edit),
+          actions: [
+            SaveButton(onPressed: () => saveLevel(ref: ref, level: level)),
+          ],
+          builder: (final _) => LevelEditor(levelId: levelId),
+        ),
+      ],
+      initialPageIndex: 1,
     );
   }
 }
