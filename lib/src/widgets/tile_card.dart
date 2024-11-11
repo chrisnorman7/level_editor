@@ -71,9 +71,17 @@ class TileCard extends ConsumerWidget {
     if (platform != null) {
       final link = platform.link;
       if (link != null) {
+        final target = ref.watch(platformProvider(levelId, link.platformId));
         menuChildren.addAll([
           MenuItemButton(
             autofocus: linkingPlatformId == null,
+            child: Text('Linked with ${target.name}'),
+            onPressed: () => context.pushWidgetBuilder(
+              (final _) =>
+                  EditPlatformScreen(platformId: target.id, levelId: levelId),
+            ),
+          ),
+          MenuItemButton(
             child: Text(link.move ? 'Unlink move' : 'Link move'),
             onPressed: () {
               final oldValue = link.move;
