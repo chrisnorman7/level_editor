@@ -68,17 +68,21 @@ class TileCard extends ConsumerWidget {
         ? null
         : ref.watch(terrainProvider(platform.terrainId));
     final menuChildren = <Widget>[];
+    final link = platform?.link;
+    final target = link == null
+        ? null
+        : ref.watch(platformProvider(levelId, link.platformId));
     if (platform != null) {
-      final link = platform.link;
       if (link != null) {
-        final target = ref.watch(platformProvider(levelId, link.platformId));
         menuChildren.addAll([
           MenuItemButton(
             autofocus: linkingPlatformId == null,
-            child: Text('Linked with ${target.name}'),
+            child: Text('Linked with ${target!.name}'),
             onPressed: () => context.pushWidgetBuilder(
-              (final _) =>
-                  EditPlatformScreen(platformId: target.id, levelId: levelId),
+              (final _) => EditPlatformScreen(
+                platformId: target.id,
+                levelId: levelId,
+              ),
             ),
           ),
           MenuItemButton(
@@ -341,7 +345,7 @@ class TileCard extends ConsumerWidget {
                 child: Semantics(
                   label:
                       // ignore: lines_longer_than_80_chars
-                      '$linkText${coordinates.x}, ${coordinates.y}: ${platform == null ? "Wall" : '${platform.name} (${terrain!.name})'}',
+                      '$linkText${coordinates.x}, ${coordinates.y}: ${platform == null ? "Wall" : '${platform.name} (${terrain!.name})${target == null ? "" : " [${target.name}]"}'}',
                   child: Card(
                     color: colour,
                     elevation: 3,
@@ -368,8 +372,10 @@ class TileCard extends ConsumerWidget {
                                     Icons.crop_din,
                                     semanticLabel: 'Wall',
                                   )
-                                : Text('${platform.name} (${terrain!.name})'),
+                                : Text(platform.name),
                           ),
+                          if (terrain != null) Text(terrain.name),
+                          if (target != null) Text(target.name),
                         ],
                       ),
                     ),
