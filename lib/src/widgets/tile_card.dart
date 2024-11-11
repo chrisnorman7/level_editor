@@ -445,6 +445,8 @@ class TileCard extends ConsumerWidget {
         if (platform == null) {
           colour = Colors.grey.shade300;
         } else if (platform.id == linkingPlatformId) {
+          colour = Colors.red;
+        } else if (linkingPlatformId != null) {
           colour = Colors.yellow;
         } else {
           colour = Colors.white;
