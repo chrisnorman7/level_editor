@@ -12,6 +12,7 @@ class LevelEditorContext {
     required this.defaultSoundType,
     required this.wallSound,
     required this.footstepSounds,
+    required this.musicSounds,
     required this.jsonEncoder,
   });
 
@@ -32,6 +33,9 @@ class LevelEditorContext {
 
   /// The lists of footstep sounds to use.
   final Map<String, List<String>> footstepSounds;
+
+  /// The possible music tracks.
+  final List<String> musicSounds;
 
   /// The default type of all sounds in the editor.
   final SoundType defaultSoundType;

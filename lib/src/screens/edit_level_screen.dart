@@ -9,6 +9,7 @@ import 'package:path/path.dart' as path;
 import '../constants.dart';
 import '../providers.dart';
 import '../widgets/level_editor.dart';
+import '../widgets/sound_reference_list_tile.dart';
 
 /// A screen to edit a level with the given [levelId].
 class EditLevelScreen extends ConsumerWidget {
@@ -49,6 +50,16 @@ class EditLevelScreen extends ConsumerWidget {
                   autofocus: true,
                   labelText: 'Level name',
                   title: 'Rename Level',
+                ),
+                SoundReferenceListTile(
+                  soundReference: level.music,
+                  possiblePaths: editor.musicSounds,
+                  onChanged: (final value) {
+                    level.music = value;
+                    saveLevel(ref: ref, level: level);
+                  },
+                  title: 'Music',
+                  looping: true,
                 ),
                 TextListTile(
                   value: level.filename,

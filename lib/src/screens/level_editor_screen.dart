@@ -17,6 +17,7 @@ class LevelEditorScreen extends ConsumerWidget {
   const LevelEditorScreen({
     required this.wallSound,
     required this.footstepSounds,
+    required this.musicSounds,
     this.levelsDirectory = 'levels/levels',
     this.terrainsFilename = 'levels/terrains.json',
     this.defaultSoundType,
@@ -39,6 +40,9 @@ class LevelEditorScreen extends ConsumerWidget {
   /// The lists of footstep sounds to use.
   final Map<String, List<String>> footstepSounds;
 
+  /// The possible music tracks.
+  final List<String> musicSounds;
+
   /// The default type of all sounds in the editor.
   ///
   /// If [defaultSoundType] is `null`, then the type of [wallSound] will be used
@@ -57,6 +61,7 @@ class LevelEditorScreen extends ConsumerWidget {
         ref.read(levelEditorContextNotifierProvider.notifier).setContext(
               wallSound: wallSound,
               footstepSounds: footstepSounds,
+              musicSounds: musicSounds,
               levelsDirectory: levelsDirectory,
               terrainsFilename: terrainsFilename,
               defaultSoundType: defaultSoundType ?? wallSound.soundType,

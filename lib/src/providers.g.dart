@@ -803,7 +803,7 @@ class _PlatformProviderElement
 }
 
 String _$levelEditorContextNotifierHash() =>
-    r'f72b5374d29a9de17a91d16d8db179bc1472322c';
+    r'616e786a75397bde9f7f445b877ad7db910923c3';
 
 /// Provide a level editor context.
 ///
