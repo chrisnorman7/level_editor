@@ -31,6 +31,7 @@ class TileCard extends ConsumerWidget {
     required this.linkPlatforms,
     required this.showDependentPlatforms,
     required this.resizePlatform,
+    required this.movePlatform,
     this.autofocus = false,
     super.key,
   });
@@ -60,6 +61,9 @@ class TileCard extends ConsumerWidget {
 
   /// The function to call to resize a platform.
   final void Function(MovingDirection direction) resizePlatform;
+
+  /// The function to call to move a platform.
+  final void Function(MovingDirection direction) movePlatform;
 
   /// Whether the resulting [Focus] should be autofocused.
   final bool autofocus;
@@ -317,6 +321,60 @@ class TileCard extends ConsumerWidget {
                 UndoableAction(
                   perform: () => resizePlatform(MovingDirection.forwards),
                   undo: () => resizePlatform(MovingDirection.backwards),
+                ),
+              ),
+            ),
+            if (platform.startX > 0)
+              PerformableAction(
+                name: 'Move west',
+                activator: const SingleActivator(
+                  LogicalKeyboardKey.arrowLeft,
+                  shift: true,
+                ),
+                invoke: () => performAction(
+                  UndoableAction(
+                    perform: () => movePlatform(MovingDirection.left),
+                    undo: () => movePlatform(MovingDirection.right),
+                  ),
+                ),
+              ),
+            PerformableAction(
+              name: 'Move east',
+              activator: const SingleActivator(
+                LogicalKeyboardKey.arrowRight,
+                shift: true,
+              ),
+              invoke: () => performAction(
+                UndoableAction(
+                  perform: () => movePlatform(MovingDirection.right),
+                  undo: () => movePlatform(MovingDirection.left),
+                ),
+              ),
+            ),
+            if (platform.startY > 0)
+              PerformableAction(
+                name: 'Move south',
+                activator: const SingleActivator(
+                  LogicalKeyboardKey.arrowDown,
+                  shift: true,
+                ),
+                invoke: () => performAction(
+                  UndoableAction(
+                    perform: () => movePlatform(MovingDirection.backwards),
+                    undo: () => movePlatform(MovingDirection.forwards),
+                  ),
+                ),
+              ),
+            PerformableAction(
+              name: 'Move north',
+              activator: const SingleActivator(
+                LogicalKeyboardKey.arrowUp,
+                shift: true,
+              ),
+              invoke: () => performAction(
+                UndoableAction(
+                  perform: () => movePlatform(MovingDirection.forwards),
+                  undo: () => movePlatform(MovingDirection.backwards),
                 ),
               ),
             ),
