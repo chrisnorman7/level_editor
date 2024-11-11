@@ -388,17 +388,15 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
       });
     } else {
       final from = ref.read(platformProvider(widget.levelId, id));
-      if (from.link != null) {
-        final links = getLinkedPlatforms(from);
-        if (links.contains(platform)) {
-          final index = links.toList().indexOf(platform);
-          context.showMessage(
-            message:
-                // ignore: lines_longer_than_80_chars
-                '${from.name} is already linked to ${platform.name} ${index == 0 ? "directly" : "vis ${links.elementAt(index - 1).name}"}.',
-          );
-          return;
-        }
+      final links = getLinkedPlatforms(from);
+      if (links.contains(platform)) {
+        final index = links.toList().indexOf(platform);
+        context.showMessage(
+          message:
+              // ignore: lines_longer_than_80_chars
+              '${from.name} is already linked to ${platform.name} ${index == 0 ? "directly" : "via ${links.elementAt(index - 1).name}"}.',
+        );
+        return;
       }
       from.link = PlatformLink(platformId: platform.id);
       setState(() {
