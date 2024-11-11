@@ -15,6 +15,9 @@ GameLevelReference _$GameLevelReferenceFromJson(Map<String, dynamic> json) =>
               GameLevelPlatformReference.fromJson(e as Map<String, dynamic>))
           .toList(),
       name: json['name'] as String? ?? 'Untitled Level',
+      music: json['music'] == null
+          ? null
+          : SoundReference.fromJson(json['music'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$GameLevelReferenceToJson(GameLevelReference instance) =>
@@ -23,4 +26,5 @@ Map<String, dynamic> _$GameLevelReferenceToJson(GameLevelReference instance) =>
       'filename': instance.filename,
       'name': instance.name,
       'platforms': instance.platforms,
+      'music': instance.music,
     };

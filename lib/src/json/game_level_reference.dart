@@ -1,6 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
 import 'game_level_platform_reference.dart';
+import 'sound_reference.dart';
 
 part 'game_level_reference.g.dart';
 
@@ -13,6 +14,7 @@ class GameLevelReference {
     required this.filename,
     required this.platforms,
     this.name = 'Untitled Level',
+    this.music,
   });
 
   /// Create an instance from a JSON object.
@@ -30,6 +32,9 @@ class GameLevelReference {
 
   /// The platforms on this level.
   final List<GameLevelPlatformReference> platforms;
+
+  /// The music for this level.
+  SoundReference? music;
 
   /// Convert an instance to JSON.
   Map<String, dynamic> toJson() => _$GameLevelReferenceToJson(this);
