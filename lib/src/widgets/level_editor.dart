@@ -105,152 +105,154 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
     if (tiles.isEmpty) {
       rebuildTiles();
     }
-    return PopScope(
-      canPop: undoActions.isEmpty && redoActions.isEmpty,
-      onPopInvokedWithResult: (final didPop, final result) {
-        if (didPop) {
+    return Actions(
+      actions: {
+        UndoTextIntent: CallbackAction(
+          onInvoke: (final intent) {
+            if (undoActions.isEmpty) {
+              context.announce('There is nothing to do.');
+            } else {
+              final action = undoActions.removeLast();
+              redoActions.add(action);
+              action.undo();
+              setState(rebuildTiles);
+            }
+            return null;
+          },
+        ),
+        RedoTextIntent: CallbackAction(
+          onInvoke: (final intent) {
+            if (redoActions.isEmpty) {
+              context.announce('There is nothing to redo.');
+            } else {
+              final action = redoActions.removeLast();
+              undoActions.add(action);
+              action.perform();
+              setState(rebuildTiles);
+            }
+            return null;
+          },
+        ),
+      },
+      child: PopScope(
+        canPop: undoActions.isEmpty && redoActions.isEmpty,
+        onPopInvokedWithResult: (final didPop, final result) {
+          if (didPop) {
+            if (levelIsUnsaved) {
+              SemanticsService.announce(
+                'You have lost unsaved changes. Sorry.',
+                TextDirection.ltr,
+              );
+            }
+          }
           if (levelIsUnsaved) {
-            SemanticsService.announce(
-              'You have lost unsaved changes. Sorry.',
-              TextDirection.ltr,
+            context.confirm(
+              message:
+                  // ignore: lines_longer_than_80_chars
+                  'You have unsaved changes. Do you want to revert them?',
+              title: 'Revert Level',
+              noLabel: 'Keep Changes',
+              yesCallback: () {
+                Navigator.pop(context);
+                undoActions.clear();
+                redoActions.clear();
+                ref.invalidate(gameLevelsProvider);
+              },
+              yesLabel: 'Revert Changes',
             );
           }
-        }
-        if (levelIsUnsaved) {
-          context.confirm(
-            message:
-                // ignore: lines_longer_than_80_chars
-                'You have unsaved changes. Do you want to revert them?',
-            title: 'Revert Level',
-            noLabel: 'Keep Changes',
-            yesCallback: () {
-              Navigator.pop(context);
-              undoActions.clear();
-              redoActions.clear();
-              ref.invalidate(gameLevelsProvider);
-            },
-            yesLabel: 'Revert Changes',
-          );
-        }
-      },
-      child: OrientationBuilder(
-        builder: (final innerContext, final orientation) {
-          final int columns;
-          final int rows;
-          switch (orientation) {
-            case Orientation.portrait:
-              rows = 6;
-              columns = 3;
-            case Orientation.landscape:
-              rows = 3;
-              columns = 5;
-          }
-          return CallbackShortcuts(
-            bindings: {
-              const SingleActivator(LogicalKeyboardKey.escape): () =>
-                  Navigator.maybePop(innerContext),
-              SingleActivator(
-                LogicalKeyboardKey.slash,
-                control: useControlKey,
-                meta: useMetaKey,
-              ): () => innerContext.pushWidgetBuilder(
-                    (final innerContext) => Cancel(
-                      child: SimpleScaffold(
-                        title: 'Keyboard Shortcuts',
-                        body: ListView.builder(
-                          itemBuilder: (final _, final index) {
-                            final shortcut = shortcuts[index];
-                            return ListTile(
-                              autofocus: index == 0,
-                              title: Text(shortcut),
-                              onTap: shortcut.copyToClipboard,
-                            );
-                          },
-                          itemCount: shortcuts.length,
-                          shrinkWrap: true,
+        },
+        child: OrientationBuilder(
+          builder: (final innerContext, final orientation) {
+            final int columns;
+            final int rows;
+            switch (orientation) {
+              case Orientation.portrait:
+                rows = 6;
+                columns = 3;
+              case Orientation.landscape:
+                rows = 3;
+                columns = 5;
+            }
+            return CallbackShortcuts(
+              bindings: {
+                const SingleActivator(LogicalKeyboardKey.escape): () =>
+                    Navigator.maybePop(innerContext),
+                SingleActivator(
+                  LogicalKeyboardKey.slash,
+                  control: useControlKey,
+                  meta: useMetaKey,
+                ): () => innerContext.pushWidgetBuilder(
+                      (final innerContext) => Cancel(
+                        child: SimpleScaffold(
+                          title: 'Keyboard Shortcuts',
+                          body: ListView.builder(
+                            itemBuilder: (final _, final index) {
+                              final shortcut = shortcuts[index];
+                              return ListTile(
+                                autofocus: index == 0,
+                                title: Text(shortcut),
+                                onTap: shortcut.copyToClipboard,
+                              );
+                            },
+                            itemCount: shortcuts.length,
+                            shrinkWrap: true,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              const SingleActivator(LogicalKeyboardKey.keyW): () =>
-                  moveCamera(MovingDirection.forwards, rows + 1),
-              const SingleActivator(LogicalKeyboardKey.keyA): () =>
-                  moveCamera(MovingDirection.left, columns + 1),
-              const SingleActivator(LogicalKeyboardKey.keyS): () =>
-                  moveCamera(MovingDirection.backwards, rows + 1),
-              const SingleActivator(LogicalKeyboardKey.keyD): () =>
-                  moveCamera(MovingDirection.right, columns + 1),
-              const SingleActivator(LogicalKeyboardKey.bracketRight): () =>
-                  switchPlatforms(1),
-              const SingleActivator(LogicalKeyboardKey.bracketLeft): () =>
-                  switchPlatforms(-1),
-              SingleActivator(
-                LogicalKeyboardKey.keyS,
-                control: useControlKey,
-                meta: useMetaKey,
-              ): _saveLevel,
-              SingleActivator(
-                LogicalKeyboardKey.keyZ,
-                control: useControlKey,
-                meta: useMetaKey,
-              ): () {
-                if (undoActions.isEmpty) {
-                  innerContext.announce('There is nothing to do.');
-                } else {
-                  final action = undoActions.removeLast();
-                  redoActions.add(action);
-                  action.undo();
-                  setState(rebuildTiles);
-                }
+                const SingleActivator(LogicalKeyboardKey.keyW): () =>
+                    moveCamera(MovingDirection.forwards, rows + 1),
+                const SingleActivator(LogicalKeyboardKey.keyA): () =>
+                    moveCamera(MovingDirection.left, columns + 1),
+                const SingleActivator(LogicalKeyboardKey.keyS): () =>
+                    moveCamera(MovingDirection.backwards, rows + 1),
+                const SingleActivator(LogicalKeyboardKey.keyD): () =>
+                    moveCamera(MovingDirection.right, columns + 1),
+                const SingleActivator(LogicalKeyboardKey.bracketRight): () =>
+                    switchPlatforms(1),
+                const SingleActivator(LogicalKeyboardKey.bracketLeft): () =>
+                    switchPlatforms(-1),
+                SingleActivator(
+                  LogicalKeyboardKey.keyS,
+                  control: useControlKey,
+                  meta: useMetaKey,
+                ): _saveLevel,
               },
-              SingleActivator(
-                LogicalKeyboardKey.keyY,
-                control: useControlKey,
-                meta: useMetaKey,
-              ): () {
-                if (redoActions.isEmpty) {
-                  innerContext.announce('There is nothing to redo.');
-                } else {
-                  final action = redoActions.removeLast();
-                  undoActions.add(action);
-                  action.perform();
-                  setState(rebuildTiles);
-                }
-              },
-            },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (var row = rows; row >= 0; row--)
-                  Expanded(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        for (var column = 0; column <= columns; column++)
-                          TileCard(
-                            autofocus: row == 0 && column == 0,
-                            levelId: widget.levelId,
-                            platformId: getTileAt(
-                              Point(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (var row = rows; row >= 0; row--)
+                    Expanded(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (var column = 0; column <= columns; column++)
+                            TileCard(
+                              autofocus: row == 0 && column == 0,
+                              levelId: widget.levelId,
+                              platformId: getTileAt(
+                                Point(
+                                  coordinates.x + column,
+                                  coordinates.y + row,
+                                ),
+                              )?.id,
+                              coordinates: Point(
                                 coordinates.x + column,
                                 coordinates.y + row,
                               ),
-                            )?.id,
-                            coordinates: Point(
-                              coordinates.x + column,
-                              coordinates.y + row,
+                              performAction: performAction,
                             ),
-                            performAction: performAction,
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-              ],
-            ),
-          );
-        },
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
