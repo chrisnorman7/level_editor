@@ -141,7 +141,7 @@ class SoundReferenceListTile extends ConsumerWidget {
     );
   }
 
-  /// Adjust the gain of [soundReference] by [amount].
+  /// Adjust the volume of [soundReference] by [amount].
   void adjustVolume(final BuildContext buildContext, final double amount) {
     final reference = soundReference!;
     setVolume(buildContext, reference.volume + amount);
