@@ -295,6 +295,24 @@ class TileCard extends ConsumerWidget {
             ),
           ];
         }
+        final String linkText;
+        if (linkingPlatformId == null) {
+          linkText = '';
+        } else if (linkingPlatformId == platformId) {
+          linkText = 'Cancel link ';
+        } else if (platformId == null) {
+          linkText = "Can't link ";
+        } else {
+          linkText = 'Complete link ';
+        }
+        final Color colour;
+        if (platform == null) {
+          colour = Colors.grey.shade300;
+        } else if (platform.id == linkingPlatformId) {
+          colour = Colors.yellow;
+        } else {
+          colour = Colors.white;
+        }
         return PlaySoundSemantics(
           key: platform == null ? null : ValueKey(platform.toJson().toString()),
           sound: sound,
@@ -315,10 +333,9 @@ class TileCard extends ConsumerWidget {
                 child: Semantics(
                   label:
                       // ignore: lines_longer_than_80_chars
-                      '${coordinates.x}, ${coordinates.y}: ${platform == null ? "Wall" : '${platform.name} (${terrain!.name})'}',
+                      '$linkText${coordinates.x}, ${coordinates.y}: ${platform == null ? "Wall" : '${platform.name} (${terrain!.name})'}',
                   child: Card(
-                    color:
-                        platform == null ? Colors.grey.shade300 : Colors.white,
+                    color: colour,
                     elevation: 3,
                     margin: const EdgeInsets.all(8),
                     shape: RoundedRectangleBorder(
@@ -360,11 +377,18 @@ class TileCard extends ConsumerWidget {
 
   /// The function to call when the card is tapped.
   void onTap(final BuildContext context) {
-    context.pushWidgetBuilder(
-      (final _) => EditPlatformScreen(
-        platformId: platformId!,
-        levelId: levelId,
-      ),
-    );
+    final id = platformId;
+    if (id == null) {
+      context.showMessage(message: 'This tile is a wall.');
+    } else if (linkingPlatformId != null) {
+      linkPlatforms();
+    } else {
+      context.pushWidgetBuilder(
+        (final _) => EditPlatformScreen(
+          platformId: platformId!,
+          levelId: levelId,
+        ),
+      );
+    }
   }
 }
