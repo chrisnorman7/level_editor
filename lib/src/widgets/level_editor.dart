@@ -104,6 +104,8 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
       'CTRL+L: link the current platform',
       'CTRL+R: Rename the current platform',
       'CTRL+T: Change the platform terrain',
+      'ALT+Arrows: Resize platforms',
+      'SHIFT+Arrows: Move platforms',
       'DELETE: Delete the current platform',
       'CTRL+/: show this help',
     ];
