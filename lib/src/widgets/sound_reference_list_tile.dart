@@ -76,8 +76,8 @@ class SoundReferenceListTile extends ConsumerWidget {
           final gain = reference.volume.toStringAsFixed(2);
           return CommonShortcuts(
             deleteCallback: () => onChanged(null),
-            moveDownCallback: () => adjustGain(builderContext, -0.1),
-            moveUpCallback: () => adjustGain(builderContext, 0.1),
+            moveDownCallback: () => adjustVolume(builderContext, -0.1),
+            moveUpCallback: () => adjustVolume(builderContext, 0.1),
             child: ListTile(
               autofocus: autofocus,
               title: Text(title),
@@ -109,7 +109,7 @@ class SoundReferenceListTile extends ConsumerWidget {
                       Expanded(
                         flex: 2,
                         child: IconButton(
-                          onPressed: () => adjustGain(builderContext, 0.1),
+                          onPressed: () => adjustVolume(builderContext, 0.1),
                           icon: const Icon(Icons.volume_up),
                           tooltip: 'Volume up',
                         ),
@@ -119,7 +119,7 @@ class SoundReferenceListTile extends ConsumerWidget {
                       Expanded(
                         flex: 2,
                         child: IconButton(
-                          onPressed: () => adjustGain(builderContext, -0.1),
+                          onPressed: () => adjustVolume(builderContext, -0.1),
                           icon: const Icon(Icons.volume_down),
                           tooltip: 'Volume down',
                         ),
@@ -142,13 +142,13 @@ class SoundReferenceListTile extends ConsumerWidget {
   }
 
   /// Adjust the gain of [soundReference] by [amount].
-  void adjustGain(final BuildContext buildContext, final double amount) {
+  void adjustVolume(final BuildContext buildContext, final double amount) {
     final reference = soundReference!;
-    setGain(buildContext, reference.volume + amount);
+    setVolume(buildContext, reference.volume + amount);
   }
 
   /// Set the volume of [soundReference] to [volume].
-  void setGain(final BuildContext buildContext, final double volume) {
+  void setVolume(final BuildContext buildContext, final double volume) {
     final reference = soundReference!
       ..volume = volume.clamp(minVolume, maxVolume);
     onChanged(soundReference);
