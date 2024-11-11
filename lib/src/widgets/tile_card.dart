@@ -305,52 +305,48 @@ class TileCard extends ConsumerWidget {
               actions: {
                 ActivateIntent: CallbackAction(
                   onInvoke: (final intent) {
-                    if (platform == null) {
-                      return null;
-                    }
-                    context.pushWidgetBuilder(
-                      (final _) => EditPlatformScreen(
-                        platformId: platform.id,
-                        levelId: levelId,
-                      ),
-                    );
+                    onTap(builderContext);
                     return null;
                   },
                 ),
               },
-              child: Semantics(
-                label:
-                    // ignore: lines_longer_than_80_chars
-                    '${coordinates.x}, ${coordinates.y}: ${platform == null ? "Wall" : '${platform.name} (${terrain!.name})'}',
-                child: Card(
-                  color: platform == null ? Colors.grey.shade300 : Colors.white,
-                  elevation: 3,
-                  margin: const EdgeInsets.all(8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '${coordinates.x}, ${coordinates.y}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+              child: GestureDetector(
+                onTap: () => onTap(builderContext),
+                child: Semantics(
+                  label:
+                      // ignore: lines_longer_than_80_chars
+                      '${coordinates.x}, ${coordinates.y}: ${platform == null ? "Wall" : '${platform.name} (${terrain!.name})'}',
+                  child: Card(
+                    color:
+                        platform == null ? Colors.grey.shade300 : Colors.white,
+                    elevation: 3,
+                    margin: const EdgeInsets.all(8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${coordinates.x}, ${coordinates.y}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                           ),
-                        ),
-                        Expanded(
-                          flex: 3,
-                          child: platform == null
-                              ? const Icon(
-                                  Icons.crop_din,
-                                  semanticLabel: 'Wall',
-                                )
-                              : Text('${platform.name} (${terrain!.name})'),
-                        ),
-                      ],
+                          Expanded(
+                            flex: 3,
+                            child: platform == null
+                                ? const Icon(
+                                    Icons.crop_din,
+                                    semanticLabel: 'Wall',
+                                  )
+                                : Text('${platform.name} (${terrain!.name})'),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -359,6 +355,16 @@ class TileCard extends ConsumerWidget {
           ),
         );
       },
+    );
+  }
+
+  /// The function to call when the card is tapped.
+  void onTap(final BuildContext context) {
+    context.pushWidgetBuilder(
+      (final _) => EditPlatformScreen(
+        platformId: platformId!,
+        levelId: levelId,
+      ),
     );
   }
 }
