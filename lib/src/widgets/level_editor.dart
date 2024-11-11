@@ -16,6 +16,7 @@ import '../exceptions.dart';
 import '../json/game_level_platform_reference.dart';
 import '../json/game_level_reference.dart';
 import '../json/game_level_terrain_reference.dart';
+import '../json/platform_link.dart';
 import '../providers.dart';
 import '../undoable_action.dart';
 import 'tile_card.dart';
@@ -42,6 +43,10 @@ class LevelEditor extends ConsumerStatefulWidget {
 
 /// State for [LevelEditor].
 class LevelEditorState extends ConsumerState<LevelEditor> {
+  /// The ID of a [GameLevelPlatformReference] that is in the process of being
+  /// linked to another.
+  String? linkingPlatformId;
+
   /// The undo queue.
   late final List<UndoableAction> undoActions;
 
@@ -230,20 +235,31 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           for (var column = 0; column <= columns; column++)
-                            TileCard(
-                              autofocus: row == 0 && column == 0,
-                              levelId: widget.levelId,
-                              platformId: getTileAt(
-                                Point(
+                            Builder(
+                              builder: (final builderContext) {
+                                final point = Point(
                                   coordinates.x + column,
                                   coordinates.y + row,
-                                ),
-                              )?.id,
-                              coordinates: Point(
-                                coordinates.x + column,
-                                coordinates.y + row,
-                              ),
-                              performAction: performAction,
+                                );
+                                final tile = getTileAt(point);
+                                return TileCard(
+                                  autofocus: row == 0 && column == 0,
+                                  levelId: widget.levelId,
+                                  platformId: tile?.id,
+                                  coordinates: point,
+                                  performAction: performAction,
+                                  linkingPlatformId: linkingPlatformId,
+                                  linkPlatforms: () {
+                                    if (tile == null) {
+                                      return builderContext.announce(
+                                        // ignore: lines_longer_than_80_chars
+                                        'If you are seeing this message, some how you could link a wall as if it was a platform.',
+                                      );
+                                    }
+                                    linkPlatforms(tile);
+                                  },
+                                );
+                              },
                             ),
                         ],
                       ),
@@ -345,5 +361,49 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
     action.perform();
     undoActions.add(action);
     setState(rebuildTiles);
+  }
+
+  /// Return all platforms linked to [platform], including [platform] itself.
+  Set<GameLevelPlatformReference> getLinkedPlatforms(
+    final GameLevelPlatformReference platform,
+  ) {
+    final links = {platform};
+    for (final other
+        in platforms.where((final p) => p.link?.platformId == platform.id)) {
+      links.addAll(getLinkedPlatforms(other));
+    }
+    return links;
+  }
+
+  /// Link 2 platforms.
+  void linkPlatforms(final GameLevelPlatformReference platform) {
+    final id = linkingPlatformId;
+    if (id == null) {
+      setState(() {
+        linkingPlatformId = platform.id;
+      });
+    } else if (id == platform.id) {
+      setState(() {
+        linkingPlatformId = null;
+      });
+    } else {
+      final from = ref.read(platformProvider(widget.levelId, id));
+      if (from.link != null) {
+        final links = getLinkedPlatforms(from);
+        if (links.contains(platform)) {
+          final index = links.toList().indexOf(platform);
+          context.showMessage(
+            message:
+                // ignore: lines_longer_than_80_chars
+                '${from.name} is already linked to ${platform.name} ${index == 0 ? "directly" : "vis ${links.elementAt(index - 1).name}"}.',
+          );
+          return;
+        }
+      }
+      from.link = PlatformLink(platformId: platform.id);
+      setState(() {
+        linkingPlatformId = null;
+      });
+    }
   }
 }

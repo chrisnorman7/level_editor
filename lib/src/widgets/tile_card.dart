@@ -27,6 +27,8 @@ class TileCard extends ConsumerWidget {
     required this.platformId,
     required this.coordinates,
     required this.performAction,
+    required this.linkingPlatformId,
+    required this.linkPlatforms,
     this.autofocus = false,
     super.key,
   });
@@ -44,6 +46,12 @@ class TileCard extends ConsumerWidget {
 
   /// The function to call to perform an action.
   final void Function(UndoableAction action) performAction;
+
+  /// The ID of a platform which is in the process of linking.
+  final String? linkingPlatformId;
+
+  /// The function to call to link platforms.
+  final VoidCallback linkPlatforms;
 
   /// Whether the resulting [Focus] should be autofocused.
   final bool autofocus;
