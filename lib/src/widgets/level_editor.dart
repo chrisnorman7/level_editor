@@ -273,6 +273,11 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
                                       builderContext,
                                       tile!,
                                     ),
+                                    resizePlatform: (final direction) =>
+                                        resizePlatform(
+                                      tile!,
+                                      direction,
+                                    ),
                                   );
                                 },
                               ),
@@ -456,6 +461,48 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
           ),
         ),
       ),
+    );
+  }
+
+  /// Resize [platform] in the given [direction].
+  void resizePlatform(
+    final GameLevelPlatformReference platform,
+    final MovingDirection direction,
+  ) {
+    final width = switch (direction) {
+      MovingDirection.left => -1,
+      MovingDirection.right => 1,
+      _ => 0
+    };
+    final depth = switch (direction) {
+      MovingDirection.forwards => 1,
+      MovingDirection.backwards => -1,
+      _ => 0
+    };
+    final finishedPlatforms = <GameLevelPlatformReference>[];
+    for (final p in [platform, ...getLinkedPlatforms(platform)]) {
+      finishedPlatforms.add(p);
+      p
+        ..width += width
+        ..depth += depth;
+      try {
+        rebuildTiles();
+      } on PlatformOverlapException catch (e) {
+        context.showMessage(
+          message:
+              // ignore: lines_longer_than_80_chars
+              'Resize failed because ${e.initialPlatform.name} would overlap ${e.overlappingPlatform.name} at ${e.coordinates.x}, ${e.coordinates.y}.',
+        );
+        for (final failed in finishedPlatforms) {
+          failed
+            ..depth += (depth * -1)
+            ..width += (width * -1);
+          return;
+        }
+      }
+    }
+    context.announce(
+      '${platform.name} resized to ${platform.width} x ${platform.depth}.',
     );
   }
 }

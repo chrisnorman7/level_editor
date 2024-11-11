@@ -30,6 +30,7 @@ class TileCard extends ConsumerWidget {
     required this.linkingPlatformId,
     required this.linkPlatforms,
     required this.showDependentPlatforms,
+    required this.resizePlatform,
     this.autofocus = false,
     super.key,
   });
@@ -56,6 +57,9 @@ class TileCard extends ConsumerWidget {
 
   /// The function to call to show dependent platforms.
   final VoidCallback showDependentPlatforms;
+
+  /// The function to call to resize a platform.
+  final void Function(MovingDirection direction) resizePlatform;
 
   /// Whether the resulting [Focus] should be autofocused.
   final bool autofocus;
@@ -263,6 +267,58 @@ class TileCard extends ConsumerWidget {
                   ),
                 );
               },
+            ),
+            if (platform.width > 1)
+              PerformableAction(
+                name: 'Shrink x',
+                activator: const SingleActivator(
+                  LogicalKeyboardKey.arrowLeft,
+                  alt: true,
+                ),
+                invoke: () => performAction(
+                  UndoableAction(
+                    perform: () => resizePlatform(MovingDirection.left),
+                    undo: () => resizePlatform(MovingDirection.right),
+                  ),
+                ),
+              ),
+            PerformableAction(
+              name: 'Expand x',
+              activator: const SingleActivator(
+                LogicalKeyboardKey.arrowRight,
+                alt: true,
+              ),
+              invoke: () => performAction(
+                UndoableAction(
+                  perform: () => resizePlatform(MovingDirection.right),
+                  undo: () => resizePlatform(MovingDirection.left),
+                ),
+              ),
+            ),
+            if (platform.depth > 1)
+              PerformableAction(
+                name: 'Shrink y',
+                activator: const SingleActivator(
+                  LogicalKeyboardKey.arrowDown,
+                  alt: true,
+                ),
+                invoke: () => performAction(
+                  UndoableAction(
+                    perform: () => resizePlatform(MovingDirection.backwards),
+                    undo: () => resizePlatform(MovingDirection.forwards),
+                  ),
+                ),
+              ),
+            PerformableAction(
+              name: 'Expand y',
+              activator:
+                  const SingleActivator(LogicalKeyboardKey.arrowUp, alt: true),
+              invoke: () => performAction(
+                UndoableAction(
+                  perform: () => resizePlatform(MovingDirection.forwards),
+                  undo: () => resizePlatform(MovingDirection.backwards),
+                ),
+              ),
             ),
             PerformableAction(
               name: 'Link platforms',
