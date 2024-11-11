@@ -393,12 +393,18 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
 
   /// Return all platforms linked to [platform].
   Set<GameLevelPlatformReference> getLinkedPlatforms(
-    final GameLevelPlatformReference platform,
-  ) {
+    final GameLevelPlatformReference platform, {
+    final bool? move,
+    final bool? resize,
+  }) {
     final links = <GameLevelPlatformReference>{};
     for (final other
         in platforms.where((final p) => p.link?.platformId == platform.id)) {
-      links.addAll([other, ...getLinkedPlatforms(other)]);
+      final link = other.link!;
+      if ((move == null || move == link.move) &&
+          (resize == null || resize == link.resize)) {
+        links.addAll([other, ...getLinkedPlatforms(other)]);
+      }
     }
     return links;
   }
@@ -487,25 +493,45 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
       _ => 0
     };
     final finishedPlatforms = <GameLevelPlatformReference>[];
-    for (final p in [platform, ...getLinkedPlatforms(platform)]) {
+    for (final p in [platform, ...getLinkedPlatforms(platform, resize: true)]) {
       finishedPlatforms.add(p);
       p
         ..width += width
         ..depth += depth;
-      try {
-        rebuildTiles();
-      } on PlatformOverlapException catch (e) {
+      var fail = false;
+      if (p.width < 1) {
+        fail = true;
         context.showMessage(
           message:
               // ignore: lines_longer_than_80_chars
-              'Resize failed because ${e.initialPlatform.name} would overlap ${e.overlappingPlatform.name} at ${e.coordinates.x}, ${e.coordinates.y}.',
+              'Resize failed because ${p.name} would have a width of ${p.width}.',
         );
+      } else if (p.depth < 1) {
+        fail = true;
+        context.showMessage(
+          message:
+              // ignore: lines_longer_than_80_chars
+              'Resize failed because ${p.name} would have a depth of ${p.depth}.',
+        );
+      } else {
+        try {
+          rebuildTiles();
+        } on PlatformOverlapException catch (e) {
+          fail = true;
+          context.showMessage(
+            message:
+                // ignore: lines_longer_than_80_chars
+                'Resize failed because ${e.initialPlatform.name} would overlap ${e.overlappingPlatform.name} at ${e.coordinates.x}, ${e.coordinates.y}.',
+          );
+        }
+      }
+      if (fail) {
         for (final failed in finishedPlatforms) {
           failed
             ..depth += (depth * -1)
             ..width += (width * -1);
-          return;
         }
+        return;
       }
     }
     context.announce(
@@ -529,25 +555,38 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
       _ => 0
     };
     final finishedPlatforms = <GameLevelPlatformReference>[];
-    for (final p in [platform, ...getLinkedPlatforms(platform)]) {
+    for (final p in [platform, ...getLinkedPlatforms(platform, move: true)]) {
       finishedPlatforms.add(p);
       p
         ..startX += x
         ..startY += y;
-      try {
-        rebuildTiles();
-      } on PlatformOverlapException catch (e) {
+      var fail = false;
+      if (p.startX < 0 || p.startY < 0) {
+        fail = true;
         context.showMessage(
           message:
               // ignore: lines_longer_than_80_chars
-              'Move failed because ${e.initialPlatform.name} would overlap ${e.overlappingPlatform.name} at ${e.coordinates.x}, ${e.coordinates.y}.',
+              'Cannot move ${platform.name} because it would cause ${p.name} to have starting coordinates of ${p.startX}, ${p.startY}.',
         );
+      } else {
+        try {
+          rebuildTiles();
+        } on PlatformOverlapException catch (e) {
+          fail = true;
+          context.showMessage(
+            message:
+                // ignore: lines_longer_than_80_chars
+                'Move failed because ${e.initialPlatform.name} would overlap ${e.overlappingPlatform.name} at ${e.coordinates.x}, ${e.coordinates.y}.',
+          );
+        }
+      }
+      if (fail) {
         for (final failed in finishedPlatforms) {
           failed
             ..startY += (y * -1)
             ..startX += (x * -1);
-          return;
         }
+        return;
       }
     }
     context.announce(
