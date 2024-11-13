@@ -30,6 +30,8 @@ class LevelEditor extends ConsumerStatefulWidget {
   const LevelEditor({
     required this.levelId,
     this.startCoordinates = const Point(0, 0),
+    this.longestSide = 6,
+    this.shortestSide = 4,
     super.key,
   });
 
@@ -38,6 +40,12 @@ class LevelEditor extends ConsumerStatefulWidget {
 
   /// The starting coordinates.
   final Point<int> startCoordinates;
+
+  /// The number of tiles to show along the longest side of the editor.
+  final int longestSide;
+
+  /// The number of tiles to show along the shortest side of the editor.
+  final int shortestSide;
 
   /// Create state for this widget.
   @override
@@ -212,11 +220,11 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
               builder: (final innerContext, final orientation) {
                 switch (orientation) {
                   case Orientation.portrait:
-                    rows = 6;
-                    columns = 3;
+                    rows = widget.longestSide;
+                    columns = widget.shortestSide;
                   case Orientation.landscape:
-                    rows = 3;
-                    columns = 5;
+                    rows = widget.shortestSide;
+                    columns = widget.longestSide;
                 }
                 return CallbackShortcuts(
                   bindings: {
