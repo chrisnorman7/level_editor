@@ -13,11 +13,12 @@ class GameLevelReference {
   GameLevelReference({
     required this.id,
     required this.filename,
-    required this.platforms,
-    required this.objects,
+    final List<GameLevelPlatformReference>? platforms,
+    final List<GameLevelObjectReference>? objects,
     this.name = 'Untitled Level',
     this.music,
-  });
+  })  : platforms = platforms ?? [],
+        objects = objects ?? [];
 
   /// Create an instance from a JSON object.
   factory GameLevelReference.fromJson(final Map<String, dynamic> json) =>

@@ -10,12 +10,12 @@ GameLevelReference _$GameLevelReferenceFromJson(Map<String, dynamic> json) =>
     GameLevelReference(
       id: json['id'] as String,
       filename: json['filename'] as String,
-      platforms: (json['platforms'] as List<dynamic>)
-          .map((e) =>
+      platforms: (json['platforms'] as List<dynamic>?)
+          ?.map((e) =>
               GameLevelPlatformReference.fromJson(e as Map<String, dynamic>))
           .toList(),
-      objects: (json['objects'] as List<dynamic>)
-          .map((e) =>
+      objects: (json['objects'] as List<dynamic>?)
+          ?.map((e) =>
               GameLevelObjectReference.fromJson(e as Map<String, dynamic>))
           .toList(),
       name: json['name'] as String? ?? 'Untitled Level',
