@@ -46,6 +46,12 @@ class LevelEditor extends ConsumerStatefulWidget {
 
 /// State for [LevelEditor].
 class LevelEditorState extends ConsumerState<LevelEditor> {
+  /// How many columns of tiles to show.
+  late int columns;
+
+  /// How many rows of tiles to show.
+  late int rows;
+
   /// The ID of a [GameLevelPlatformReference] that is in the process of being
   /// linked to another.
   String? linkingPlatformId;
@@ -204,8 +210,6 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
             },
             child: OrientationBuilder(
               builder: (final innerContext, final orientation) {
-                final int columns;
-                final int rows;
                 switch (orientation) {
                   case Orientation.portrait:
                     rows = 6;
@@ -242,13 +246,13 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
                           ),
                         ),
                     const SingleActivator(LogicalKeyboardKey.keyW): () =>
-                        moveCamera(MovingDirection.forwards, rows + 1),
+                        moveCamera(MovingDirection.forwards),
                     const SingleActivator(LogicalKeyboardKey.keyA): () =>
-                        moveCamera(MovingDirection.left, columns + 1),
+                        moveCamera(MovingDirection.left),
                     const SingleActivator(LogicalKeyboardKey.keyS): () =>
-                        moveCamera(MovingDirection.backwards, rows + 1),
+                        moveCamera(MovingDirection.backwards),
                     const SingleActivator(LogicalKeyboardKey.keyD): () =>
-                        moveCamera(MovingDirection.right, columns + 1),
+                        moveCamera(MovingDirection.right),
                     const SingleActivator(LogicalKeyboardKey.bracketRight):
                         () => switchPlatforms(1),
                     const SingleActivator(LogicalKeyboardKey.bracketLeft): () =>
@@ -367,15 +371,17 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
   }
 
   /// Move the camera in the given [direction].
-  void moveCamera(final MovingDirection direction, final int distance) {
+  void moveCamera(
+    final MovingDirection direction,
+  ) {
     final x = switch (direction) {
-      MovingDirection.left => coordinates.x - distance,
-      MovingDirection.right => coordinates.x + distance,
+      MovingDirection.left => coordinates.x - columns - 1,
+      MovingDirection.right => coordinates.x + columns + 1,
       _ => coordinates.x
     };
     final y = switch (direction) {
-      MovingDirection.forwards => coordinates.y + distance,
-      MovingDirection.backwards => coordinates.y - distance,
+      MovingDirection.forwards => coordinates.y + rows + 1,
+      MovingDirection.backwards => coordinates.y - rows - 1,
       _ => coordinates.y
     };
     final point = Point(x, y);
