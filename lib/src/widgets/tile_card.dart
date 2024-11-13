@@ -170,403 +170,403 @@ class TileCard extends ConsumerWidget {
         );
       }
     }
-    return MenuAnchor(
-      menuChildren: menuChildren,
-      builder: (final builderContext, final menuController, final child) {
-        final Sound sound;
-        final actions = [
+    final Sound sound;
+    final actions = [
+      PerformableAction(
+        name: 'New object',
+        activator: SingleActivator(
+          LogicalKeyboardKey.keyN,
+          control: useControlKey,
+          meta: useMetaKey,
+          shift: true,
+        ),
+        invoke: () {
+          final id = newId();
+          final object = GameLevelObjectReference(
+            id: id,
+            ambiance: SoundReference(
+              path: editor.ambianceSounds.first,
+            ),
+          );
+          performAction(
+            UndoableAction(
+              perform: () => level.objects.add(object),
+              undo: () => level.objects.removeWhere,
+            ),
+          );
+        },
+      ),
+    ];
+    if (objects.isNotEmpty) {
+      actions.add(
+        PerformableAction(
+          name: 'Objects menu',
+          activator: SingleActivator(
+            LogicalKeyboardKey.keyO,
+            control: useControlKey,
+            meta: useMetaKey,
+            shift: true,
+          ),
+          invoke: () {
+            context.announce('Objects.');
+          },
+        ),
+      );
+    }
+    final menuController = MenuController();
+    if (platform == null) {
+      sound = editor.wallSound;
+      actions.addAll(
+        [
           PerformableAction(
-            name: 'New object',
+            name: 'New platform',
             activator: SingleActivator(
               LogicalKeyboardKey.keyN,
               control: useControlKey,
               meta: useMetaKey,
-              shift: true,
             ),
             invoke: () {
-              final id = newId();
-              final object = GameLevelObjectReference(
-                id: id,
-                ambiance: SoundReference(
-                  path: editor.ambianceSounds.first,
-                ),
+              final terrains = ref.read(terrainsProvider);
+              final platform = GameLevelPlatformReference(
+                id: newId(),
+                terrainId: terrains.first.id,
+                startX: max(0, coordinates.x),
+                startY: max(0, coordinates.y),
               );
-              performAction(
-                UndoableAction(
-                  perform: () => level.objects.add(object),
-                  undo: () => level.objects.removeWhere,
+              if (coordinates.x < 0 || coordinates.y < 0) {
+                for (final other in level.platforms) {
+                  if (coordinates.x < 0) {
+                    other.startX -= coordinates.x;
+                  }
+                  if (coordinates.y < 0) {
+                    other.startY -= coordinates.y;
+                  }
+                }
+              }
+              final action = UndoableAction(
+                perform: () {
+                  level.platforms.add(platform);
+                },
+                undo: () {
+                  level.platforms.removeWhere(
+                    (final other) => other.id == platform.id,
+                  );
+                },
+              );
+              performAction(action);
+            },
+          ),
+        ],
+      );
+    } else {
+      final footstepSounds = ref.watch(
+        footstepsProvider(
+          key: terrain!.footstepSounds,
+          destroy: true,
+          volume: terrain.footstepSoundsGain,
+        ),
+      );
+      sound = footstepSounds.randomElement(random);
+      actions.addAll(
+        [
+          PerformableAction(
+            name: 'Rename',
+            activator: SingleActivator(
+              LogicalKeyboardKey.keyR,
+              control: useControlKey,
+              meta: useMetaKey,
+            ),
+            invoke: () {
+              final oldName = platform.name;
+              context.pushWidgetBuilder(
+                (final getTextContext) => GetText(
+                  onDone: (final value) {
+                    Navigator.pop(getTextContext);
+                    final action = UndoableAction(
+                      perform: () => platform.name = value,
+                      undo: () => platform.name = oldName,
+                    );
+                    performAction(action);
+                  },
+                  labelText: 'Platform name',
+                  text: oldName,
+                  title: 'Rename Platform',
                 ),
               );
             },
           ),
-        ];
-        if (objects.isNotEmpty) {
-          actions.add(
+          PerformableAction(
+            name: 'Change terrain',
+            activator: SingleActivator(
+              LogicalKeyboardKey.keyT,
+              control: useControlKey,
+              meta: useMetaKey,
+            ),
+            invoke: () {
+              final oldTerrainId = platform.terrainId;
+              context.pushWidgetBuilder(
+                (final _) => SelectTerrainScreen(
+                  terrainId: platform.terrainId,
+                  onChanged: (final value) {
+                    final action = UndoableAction(
+                      perform: () {
+                        platform.terrainId = value.id;
+                      },
+                      undo: () {
+                        platform.terrainId = oldTerrainId;
+                      },
+                    );
+                    performAction(action);
+                  },
+                ),
+              );
+            },
+          ),
+          if (platform.width > 1)
             PerformableAction(
-              name: 'Objects menu',
-              activator: SingleActivator(
-                LogicalKeyboardKey.keyO,
-                control: useControlKey,
-                meta: useMetaKey,
+              name: 'Shrink x',
+              activator: const SingleActivator(
+                LogicalKeyboardKey.arrowLeft,
+                alt: true,
+              ),
+              invoke: () => performAction(
+                UndoableAction(
+                  perform: () => resizePlatform(MovingDirection.left),
+                  undo: () => resizePlatform(MovingDirection.right),
+                ),
+              ),
+            ),
+          PerformableAction(
+            name: 'Expand x',
+            activator: const SingleActivator(
+              LogicalKeyboardKey.arrowRight,
+              alt: true,
+            ),
+            invoke: () => performAction(
+              UndoableAction(
+                perform: () => resizePlatform(MovingDirection.right),
+                undo: () => resizePlatform(MovingDirection.left),
+              ),
+            ),
+          ),
+          if (platform.depth > 1)
+            PerformableAction(
+              name: 'Shrink y',
+              activator: const SingleActivator(
+                LogicalKeyboardKey.arrowDown,
+                alt: true,
+              ),
+              invoke: () => performAction(
+                UndoableAction(
+                  perform: () => resizePlatform(MovingDirection.backwards),
+                  undo: () => resizePlatform(MovingDirection.forwards),
+                ),
+              ),
+            ),
+          PerformableAction(
+            name: 'Expand y',
+            activator: const SingleActivator(
+              LogicalKeyboardKey.arrowUp,
+              alt: true,
+            ),
+            invoke: () => performAction(
+              UndoableAction(
+                perform: () => resizePlatform(MovingDirection.forwards),
+                undo: () => resizePlatform(MovingDirection.backwards),
+              ),
+            ),
+          ),
+          if (platform.startX > 0)
+            PerformableAction(
+              name: 'Move west',
+              activator: const SingleActivator(
+                LogicalKeyboardKey.arrowLeft,
                 shift: true,
               ),
-              invoke: () {
-                builderContext.announce('Objects.');
-              },
-            ),
-          );
-        }
-        if (platform == null) {
-          sound = editor.wallSound;
-          actions.addAll(
-            [
-              PerformableAction(
-                name: 'New platform',
-                activator: SingleActivator(
-                  LogicalKeyboardKey.keyN,
-                  control: useControlKey,
-                  meta: useMetaKey,
+              invoke: () => performAction(
+                UndoableAction(
+                  perform: () => movePlatform(MovingDirection.left),
+                  undo: () => movePlatform(MovingDirection.right),
                 ),
-                invoke: () {
-                  final terrains = ref.read(terrainsProvider);
-                  final platform = GameLevelPlatformReference(
-                    id: newId(),
-                    terrainId: terrains.first.id,
-                    startX: max(0, coordinates.x),
-                    startY: max(0, coordinates.y),
+              ),
+            ),
+          PerformableAction(
+            name: 'Move east',
+            activator: const SingleActivator(
+              LogicalKeyboardKey.arrowRight,
+              shift: true,
+            ),
+            invoke: () => performAction(
+              UndoableAction(
+                perform: () => movePlatform(MovingDirection.right),
+                undo: () => movePlatform(MovingDirection.left),
+              ),
+            ),
+          ),
+          if (platform.startY > 0)
+            PerformableAction(
+              name: 'Move south',
+              activator: const SingleActivator(
+                LogicalKeyboardKey.arrowDown,
+                shift: true,
+              ),
+              invoke: () => performAction(
+                UndoableAction(
+                  perform: () => movePlatform(MovingDirection.backwards),
+                  undo: () => movePlatform(MovingDirection.forwards),
+                ),
+              ),
+            ),
+          PerformableAction(
+            name: 'Move north',
+            activator: const SingleActivator(
+              LogicalKeyboardKey.arrowUp,
+              shift: true,
+            ),
+            invoke: () => performAction(
+              UndoableAction(
+                perform: () => movePlatform(MovingDirection.forwards),
+                undo: () => movePlatform(MovingDirection.backwards),
+              ),
+            ),
+          ),
+          PerformableAction(
+            name: 'Link platforms',
+            activator: SingleActivator(
+              LogicalKeyboardKey.keyL,
+              control: useControlKey,
+              meta: useMetaKey,
+            ),
+            invoke: () {
+              if (menuController.isOpen) {
+                menuController.close();
+              } else {
+                menuController.open();
+              }
+            },
+          ),
+          PerformableAction(
+            name: 'Delete',
+            activator: const SingleActivator(LogicalKeyboardKey.delete),
+            invoke: () {
+              for (final other in level.platforms) {
+                if (other.link?.platformId == platform.id) {
+                  context.showMessage(
+                    message:
+                        // ignore: lines_longer_than_80_chars
+                        'You cannot delete the ${platform.name} platform until you have unlinked it from ${other.name}.',
                   );
-                  if (coordinates.x < 0 || coordinates.y < 0) {
-                    for (final other in level.platforms) {
-                      if (coordinates.x < 0) {
-                        other.startX -= coordinates.x;
-                      }
-                      if (coordinates.y < 0) {
-                        other.startY -= coordinates.y;
-                      }
-                    }
-                  }
+                  return;
+                }
+              }
+              context.confirm(
+                message:
+                    // ignore: lines_longer_than_80_chars
+                    'Are you sure you want to delete the ${platform.name} platform?',
+                title: 'Confirm Delete',
+                yesCallback: () {
+                  Navigator.pop(context);
                   final action = UndoableAction(
                     perform: () {
-                      level.platforms.add(platform);
-                    },
-                    undo: () {
                       level.platforms.removeWhere(
                         (final other) => other.id == platform.id,
                       );
                     },
+                    undo: () {
+                      level.platforms.add(platform);
+                    },
                   );
                   performAction(action);
                 },
-              ),
-            ],
-          );
-        } else {
-          final footstepSounds = ref.watch(
-            footstepsProvider(
-              key: terrain!.footstepSounds,
-              destroy: true,
-              volume: terrain.footstepSoundsGain,
-            ),
-          );
-          sound = footstepSounds.randomElement(random);
-          actions.addAll(
-            [
-              PerformableAction(
-                name: 'Rename',
-                activator: SingleActivator(
-                  LogicalKeyboardKey.keyR,
-                  control: useControlKey,
-                  meta: useMetaKey,
-                ),
-                invoke: () {
-                  final oldName = platform.name;
-                  context.pushWidgetBuilder(
-                    (final getTextContext) => GetText(
-                      onDone: (final value) {
-                        Navigator.pop(getTextContext);
-                        final action = UndoableAction(
-                          perform: () => platform.name = value,
-                          undo: () => platform.name = oldName,
-                        );
-                        performAction(action);
-                      },
-                      labelText: 'Platform name',
-                      text: oldName,
-                      title: 'Rename Platform',
-                    ),
-                  );
-                },
-              ),
-              PerformableAction(
-                name: 'Change terrain',
-                activator: SingleActivator(
-                  LogicalKeyboardKey.keyT,
-                  control: useControlKey,
-                  meta: useMetaKey,
-                ),
-                invoke: () {
-                  final oldTerrainId = platform.terrainId;
-                  context.pushWidgetBuilder(
-                    (final _) => SelectTerrainScreen(
-                      terrainId: platform.terrainId,
-                      onChanged: (final value) {
-                        final action = UndoableAction(
-                          perform: () {
-                            platform.terrainId = value.id;
-                          },
-                          undo: () {
-                            platform.terrainId = oldTerrainId;
-                          },
-                        );
-                        performAction(action);
-                      },
-                    ),
-                  );
-                },
-              ),
-              if (platform.width > 1)
-                PerformableAction(
-                  name: 'Shrink x',
-                  activator: const SingleActivator(
-                    LogicalKeyboardKey.arrowLeft,
-                    alt: true,
-                  ),
-                  invoke: () => performAction(
-                    UndoableAction(
-                      perform: () => resizePlatform(MovingDirection.left),
-                      undo: () => resizePlatform(MovingDirection.right),
-                    ),
-                  ),
-                ),
-              PerformableAction(
-                name: 'Expand x',
-                activator: const SingleActivator(
-                  LogicalKeyboardKey.arrowRight,
-                  alt: true,
-                ),
-                invoke: () => performAction(
-                  UndoableAction(
-                    perform: () => resizePlatform(MovingDirection.right),
-                    undo: () => resizePlatform(MovingDirection.left),
-                  ),
-                ),
-              ),
-              if (platform.depth > 1)
-                PerformableAction(
-                  name: 'Shrink y',
-                  activator: const SingleActivator(
-                    LogicalKeyboardKey.arrowDown,
-                    alt: true,
-                  ),
-                  invoke: () => performAction(
-                    UndoableAction(
-                      perform: () => resizePlatform(MovingDirection.backwards),
-                      undo: () => resizePlatform(MovingDirection.forwards),
-                    ),
-                  ),
-                ),
-              PerformableAction(
-                name: 'Expand y',
-                activator: const SingleActivator(
-                  LogicalKeyboardKey.arrowUp,
-                  alt: true,
-                ),
-                invoke: () => performAction(
-                  UndoableAction(
-                    perform: () => resizePlatform(MovingDirection.forwards),
-                    undo: () => resizePlatform(MovingDirection.backwards),
-                  ),
-                ),
-              ),
-              if (platform.startX > 0)
-                PerformableAction(
-                  name: 'Move west',
-                  activator: const SingleActivator(
-                    LogicalKeyboardKey.arrowLeft,
-                    shift: true,
-                  ),
-                  invoke: () => performAction(
-                    UndoableAction(
-                      perform: () => movePlatform(MovingDirection.left),
-                      undo: () => movePlatform(MovingDirection.right),
-                    ),
-                  ),
-                ),
-              PerformableAction(
-                name: 'Move east',
-                activator: const SingleActivator(
-                  LogicalKeyboardKey.arrowRight,
-                  shift: true,
-                ),
-                invoke: () => performAction(
-                  UndoableAction(
-                    perform: () => movePlatform(MovingDirection.right),
-                    undo: () => movePlatform(MovingDirection.left),
-                  ),
-                ),
-              ),
-              if (platform.startY > 0)
-                PerformableAction(
-                  name: 'Move south',
-                  activator: const SingleActivator(
-                    LogicalKeyboardKey.arrowDown,
-                    shift: true,
-                  ),
-                  invoke: () => performAction(
-                    UndoableAction(
-                      perform: () => movePlatform(MovingDirection.backwards),
-                      undo: () => movePlatform(MovingDirection.forwards),
-                    ),
-                  ),
-                ),
-              PerformableAction(
-                name: 'Move north',
-                activator: const SingleActivator(
-                  LogicalKeyboardKey.arrowUp,
-                  shift: true,
-                ),
-                invoke: () => performAction(
-                  UndoableAction(
-                    perform: () => movePlatform(MovingDirection.forwards),
-                    undo: () => movePlatform(MovingDirection.backwards),
-                  ),
-                ),
-              ),
-              PerformableAction(
-                name: 'Link platforms',
-                activator: SingleActivator(
-                  LogicalKeyboardKey.keyL,
-                  control: useControlKey,
-                  meta: useMetaKey,
-                ),
-                invoke: () {
-                  if (menuController.isOpen) {
-                    menuController.close();
-                  } else {
-                    menuController.open();
-                  }
-                },
-              ),
-              PerformableAction(
-                name: 'Delete',
-                activator: const SingleActivator(LogicalKeyboardKey.delete),
-                invoke: () {
-                  for (final other in level.platforms) {
-                    if (other.link?.platformId == platform.id) {
-                      context.showMessage(
-                        message:
-                            // ignore: lines_longer_than_80_chars
-                            'You cannot delete the ${platform.name} platform until you have unlinked it from ${other.name}.',
-                      );
-                      return;
-                    }
-                  }
-                  context.confirm(
-                    message:
-                        // ignore: lines_longer_than_80_chars
-                        'Are you sure you want to delete the ${platform.name} platform?',
-                    title: 'Confirm Delete',
-                    yesCallback: () {
-                      Navigator.pop(context);
-                      final action = UndoableAction(
-                        perform: () {
-                          level.platforms.removeWhere(
-                            (final other) => other.id == platform.id,
-                          );
-                        },
-                        undo: () {
-                          level.platforms.add(platform);
-                        },
-                      );
-                      performAction(action);
-                    },
-                  );
-                },
-              ),
-            ],
-          );
-        }
-        final String linkText;
-        if (linkingPlatformId == null) {
-          linkText = '';
-        } else if (linkingPlatformId == platformId) {
-          linkText = 'Cancel link ';
-        } else if (platformId == null) {
-          linkText = "Can't link ";
-        } else {
-          linkText = 'Complete link ';
-        }
-        final Color colour;
-        if (platform == null) {
-          colour = Colors.grey.shade300;
-        } else if (platform.id == linkingPlatformId) {
-          colour = Colors.red;
-        } else if (linkingPlatformId != null) {
-          colour = Colors.yellow;
-        } else {
-          colour = Colors.white;
-        }
-        return PlaySoundSemantics(
-          key: platform == null ? null : ValueKey(platform.id),
-          sound: sound,
-          child: PerformableActions(
-            actions: actions,
-            child: FocusableActionDetector(
-              autofocus: autofocus,
-              actions: {
-                ActivateIntent: CallbackAction(
-                  onInvoke: (final intent) {
-                    onTap(builderContext);
-                    return null;
-                  },
-                ),
+              );
+            },
+          ),
+        ],
+      );
+    }
+    final String linkText;
+    if (linkingPlatformId == null) {
+      linkText = '';
+    } else if (linkingPlatformId == platformId) {
+      linkText = 'Cancel link ';
+    } else if (platformId == null) {
+      linkText = "Can't link ";
+    } else {
+      linkText = 'Complete link ';
+    }
+    final Color colour;
+    if (platform == null) {
+      colour = Colors.grey.shade300;
+    } else if (platform.id == linkingPlatformId) {
+      colour = Colors.red;
+    } else if (linkingPlatformId != null) {
+      colour = Colors.yellow;
+    } else {
+      colour = Colors.white;
+    }
+    return PlaySoundSemantics(
+      key: platform == null ? null : ValueKey(platform.id),
+      sound: sound,
+      child: PerformableActions(
+        actions: actions,
+        child: FocusableActionDetector(
+          autofocus: autofocus,
+          actions: {
+            ActivateIntent: CallbackAction(
+              onInvoke: (final intent) {
+                onTap(context);
+                return null;
               },
-              child: GestureDetector(
-                onTap: () => onTap(builderContext),
-                child: Semantics(
-                  label:
-                      // ignore: lines_longer_than_80_chars
-                      '$linkText${coordinates.x}, ${coordinates.y}: ${platform == null ? "Wall" : '${platform.name} (${terrain!.name})${target == null ? "" : " [${target.name}]"}'}${objects.isEmpty ? "" : ': ${objects.map((final o) => o.name).join(', ')}'}',
-                  child: Card(
-                    color: colour,
-                    elevation: 3,
-                    margin: const EdgeInsets.all(8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '${coordinates.x}, ${coordinates.y}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
+            ),
+          },
+          child: GestureDetector(
+            onTap: () => onTap(context),
+            child: Semantics(
+              label:
+                  // ignore: lines_longer_than_80_chars
+                  '$linkText${coordinates.x}, ${coordinates.y}: ${platform == null ? "Wall" : '${platform.name} (${terrain!.name})${target == null ? "" : " [${target.name}]"}'}${objects.isEmpty ? "" : ': ${objects.map((final o) => o.name).join(', ')}'}',
+              child: Card(
+                color: colour,
+                elevation: 3,
+                margin: const EdgeInsets.all(8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: MenuAnchor(
+                  menuChildren: menuChildren,
+                  controller: menuController,
+                  builder: (final _, final __, final ___) => Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${coordinates.x}, ${coordinates.y}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
                           ),
-                          Expanded(
-                            flex: 3,
-                            child: platform == null
-                                ? const Icon(
-                                    Icons.crop_din,
-                                    semanticLabel: 'Wall',
-                                  )
-                                : Text(platform.name),
-                          ),
-                          if (terrain != null) Text(terrain.name),
-                          if (target != null) Text(target.name),
-                        ],
-                      ),
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: platform == null
+                              ? const Icon(
+                                  Icons.crop_din,
+                                  semanticLabel: 'Wall',
+                                )
+                              : Text(platform.name),
+                        ),
+                        if (terrain != null) Text(terrain.name),
+                        if (target != null) Text(target.name),
+                      ],
                     ),
                   ),
                 ),
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
