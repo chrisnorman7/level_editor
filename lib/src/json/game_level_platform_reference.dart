@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:json_annotation/json_annotation.dart';
 
@@ -19,6 +20,9 @@ class GameLevelPlatformReference {
     this.startY = 0,
     this.width = 1,
     this.depth = 1,
+    this.onEnter,
+    this.onActivate,
+    this.onExit,
   });
 
   /// Create an instance from a JSON object.
@@ -62,6 +66,27 @@ class GameLevelPlatformReference {
 
   /// The end coordinates of this platform.
   Point<int> get end => Point(endX, endY);
+
+  /// The function to call when the player enters this platform.
+  @JsonKey(
+    includeFromJson: false,
+    includeToJson: false,
+  )
+  VoidCallback? onEnter;
+
+  /// The function to call when the player presses enter in this platform.
+  @JsonKey(
+    includeFromJson: false,
+    includeToJson: false,
+  )
+  VoidCallback? onActivate;
+
+  /// The function to call when the player exits this platform.
+  @JsonKey(
+    includeFromJson: false,
+    includeToJson: false,
+  )
+  VoidCallback? onExit;
 
   /// Convert an instance to JSON.
   Map<String, dynamic> toJson() => _$GameLevelPlatformReferenceToJson(this);
