@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:json_annotation/json_annotation.dart';
@@ -13,6 +14,8 @@ class GameLevelObjectReference {
   GameLevelObjectReference({
     required this.id,
     this.name = 'Untitled Object',
+    this.x = 0,
+    this.y = 0,
     this.ambiance,
     this.approachDistance = 1,
     this.onApproach,
@@ -28,6 +31,15 @@ class GameLevelObjectReference {
 
   /// The name of this object.
   String name;
+
+  /// The x coordinate.
+  int x;
+
+  /// The y coordinate.
+  int y;
+
+  /// The coordinates of this object.
+  Point<int> get coordinates => Point(x, y);
 
   /// The ambiance of this object.
   SoundReference? ambiance;

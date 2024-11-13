@@ -13,6 +13,7 @@ class LevelEditorContext {
     required this.wallSound,
     required this.footstepSounds,
     required this.musicSounds,
+    required this.ambianceSounds,
     required this.jsonEncoder,
   });
 
@@ -36,6 +37,9 @@ class LevelEditorContext {
 
   /// The possible music tracks.
   final List<String> musicSounds;
+
+  /// The possible ambiance sounds.
+  final List<String> ambianceSounds;
 
   /// The default type of all sounds in the editor.
   final SoundType defaultSoundType;

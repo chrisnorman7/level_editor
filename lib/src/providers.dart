@@ -94,6 +94,7 @@ class LevelEditorContextNotifier extends _$LevelEditorContextNotifier {
     required final Sound wallSound,
     required final Map<String, List<String>> footstepSounds,
     required final List<String> musicSounds,
+    required final List<String> ambianceSounds,
     required final String levelsDirectory,
     required final String terrainsFilename,
     required final SoundType defaultSoundType,
@@ -105,6 +106,7 @@ class LevelEditorContextNotifier extends _$LevelEditorContextNotifier {
         defaultSoundType: defaultSoundType,
         wallSound: wallSound,
         footstepSounds: footstepSounds,
+        ambianceSounds: ambianceSounds,
         musicSounds: musicSounds,
         jsonEncoder: jsonEncoder,
       );

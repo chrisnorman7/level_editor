@@ -13,6 +13,7 @@ import 'package:flutter_soloud/flutter_soloud.dart';
 
 import '../constants.dart';
 import '../exceptions.dart';
+import '../json/game_level_object_reference.dart';
 import '../json/game_level_platform_reference.dart';
 import '../json/game_level_reference.dart';
 import '../json/game_level_terrain_reference.dart';
@@ -73,6 +74,9 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
   /// The tiles for the level.
   late final Map<Point<int>, GameLevelPlatformReference> tiles;
 
+  /// The objects which are part of the [level].
+  late final Map<Point<int>, GameLevelObjectReference> objects;
+
   /// Whether or not the [level] has unsaved changes.
   bool get levelIsUnsaved => undoActions.isNotEmpty || redoActions.isNotEmpty;
 
@@ -84,6 +88,7 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
     redoActions = [];
     random = Random();
     tiles = {};
+    objects = {};
     setCoordinates(widget.startCoordinates);
   }
 
@@ -107,6 +112,8 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
       'ALT+Arrows: Resize platforms',
       'SHIFT+Arrows: Move platforms',
       'DELETE: Delete the current platform',
+      'CTRL+SHIFT+N: New object',
+      'CTRL+SHIFT+O: Objects menu',
       'CTRL+/: show this help',
     ];
     final editor = ref.watch(levelEditorContextProvider);
@@ -115,186 +122,203 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
     if (tiles.isEmpty) {
       rebuildTiles();
     }
-    return MaybeMusic(
-      music: level.music?.asSound(
-        destroy: false,
-        soundType: editor.defaultSoundType,
-        loadMode: LoadMode.disk,
-        looping: true,
-      ),
-      builder: (final _) => Actions(
-        actions: {
-          UndoTextIntent: CallbackAction(
-            onInvoke: (final intent) {
-              if (undoActions.isEmpty) {
-                context.announce('There is nothing to do.');
-              } else {
-                final action = undoActions.removeLast();
-                redoActions.add(action);
-                action.undo();
-                setState(rebuildTiles);
+    return AmbiancesBuilder(
+      ambiances: level.objects
+          .where((final object) => object.ambiance != null)
+          .map(
+            (final object) => object.ambiance!.asSound(
+              destroy: false,
+              soundType: editor.defaultSoundType,
+              looping: true,
+              position: SoundPosition3d(
+                object.x.toDouble(),
+                object.y.toDouble(),
+                0.0,
+              ),
+            ),
+          )
+          .toList(),
+      builder: (final ambianceBuilderContext, final ambiances) => MaybeMusic(
+        music: level.music?.asSound(
+          destroy: false,
+          soundType: editor.defaultSoundType,
+          loadMode: LoadMode.disk,
+          looping: true,
+        ),
+        builder: (final _) => Actions(
+          actions: {
+            UndoTextIntent: CallbackAction(
+              onInvoke: (final intent) {
+                if (undoActions.isEmpty) {
+                  context.announce('There is nothing to do.');
+                } else {
+                  final action = undoActions.removeLast();
+                  redoActions.add(action);
+                  action.undo();
+                  setState(rebuildTiles);
+                }
+                return null;
+              },
+            ),
+            RedoTextIntent: CallbackAction(
+              onInvoke: (final intent) {
+                if (redoActions.isEmpty) {
+                  context.announce('There is nothing to redo.');
+                } else {
+                  final action = redoActions.removeLast();
+                  undoActions.add(action);
+                  action.perform();
+                  setState(rebuildTiles);
+                }
+                return null;
+              },
+            ),
+          },
+          child: PopScope(
+            canPop: undoActions.isEmpty && redoActions.isEmpty,
+            onPopInvokedWithResult: (final didPop, final result) {
+              if (didPop) {
+                if (levelIsUnsaved) {
+                  SemanticsService.announce(
+                    'You have lost unsaved changes. Sorry.',
+                    TextDirection.ltr,
+                  );
+                }
               }
-              return null;
-            },
-          ),
-          RedoTextIntent: CallbackAction(
-            onInvoke: (final intent) {
-              if (redoActions.isEmpty) {
-                context.announce('There is nothing to redo.');
-              } else {
-                final action = redoActions.removeLast();
-                undoActions.add(action);
-                action.perform();
-                setState(rebuildTiles);
-              }
-              return null;
-            },
-          ),
-        },
-        child: PopScope(
-          canPop: undoActions.isEmpty && redoActions.isEmpty,
-          onPopInvokedWithResult: (final didPop, final result) {
-            if (didPop) {
               if (levelIsUnsaved) {
-                SemanticsService.announce(
-                  'You have lost unsaved changes. Sorry.',
-                  TextDirection.ltr,
+                context.confirm(
+                  message:
+                      // ignore: lines_longer_than_80_chars
+                      'You have unsaved changes. Do you want to revert them?',
+                  title: 'Revert Level',
+                  noLabel: 'Keep Changes',
+                  yesCallback: () {
+                    Navigator.pop(context);
+                    undoActions.clear();
+                    redoActions.clear();
+                    ref.invalidate(gameLevelsProvider);
+                  },
+                  yesLabel: 'Revert Changes',
                 );
               }
-            }
-            if (levelIsUnsaved) {
-              context.confirm(
-                message:
-                    // ignore: lines_longer_than_80_chars
-                    'You have unsaved changes. Do you want to revert them?',
-                title: 'Revert Level',
-                noLabel: 'Keep Changes',
-                yesCallback: () {
-                  Navigator.pop(context);
-                  undoActions.clear();
-                  redoActions.clear();
-                  ref.invalidate(gameLevelsProvider);
-                },
-                yesLabel: 'Revert Changes',
-              );
-            }
-          },
-          child: OrientationBuilder(
-            builder: (final innerContext, final orientation) {
-              final int columns;
-              final int rows;
-              switch (orientation) {
-                case Orientation.portrait:
-                  rows = 6;
-                  columns = 3;
-                case Orientation.landscape:
-                  rows = 3;
-                  columns = 5;
-              }
-              return CallbackShortcuts(
-                bindings: {
-                  const SingleActivator(LogicalKeyboardKey.escape): () =>
-                      Navigator.maybePop(innerContext),
-                  SingleActivator(
-                    LogicalKeyboardKey.slash,
-                    control: useControlKey,
-                    meta: useMetaKey,
-                  ): () => innerContext.pushWidgetBuilder(
-                        (final innerContext) => Cancel(
-                          child: SimpleScaffold(
-                            title: 'Keyboard Shortcuts',
-                            body: ListView.builder(
-                              itemBuilder: (final _, final index) {
-                                final shortcut = shortcuts[index];
-                                return ListTile(
-                                  autofocus: index == 0,
-                                  title: Text(shortcut),
-                                  onTap: shortcut.copyToClipboard,
-                                );
-                              },
-                              itemCount: shortcuts.length,
-                              shrinkWrap: true,
+            },
+            child: OrientationBuilder(
+              builder: (final innerContext, final orientation) {
+                final int columns;
+                final int rows;
+                switch (orientation) {
+                  case Orientation.portrait:
+                    rows = 6;
+                    columns = 3;
+                  case Orientation.landscape:
+                    rows = 3;
+                    columns = 5;
+                }
+                return CallbackShortcuts(
+                  bindings: {
+                    const SingleActivator(LogicalKeyboardKey.escape): () =>
+                        Navigator.maybePop(innerContext),
+                    SingleActivator(
+                      LogicalKeyboardKey.slash,
+                      control: useControlKey,
+                      meta: useMetaKey,
+                    ): () => innerContext.pushWidgetBuilder(
+                          (final innerContext) => Cancel(
+                            child: SimpleScaffold(
+                              title: 'Keyboard Shortcuts',
+                              body: ListView.builder(
+                                itemBuilder: (final _, final index) {
+                                  final shortcut = shortcuts[index];
+                                  return ListTile(
+                                    autofocus: index == 0,
+                                    title: Text(shortcut),
+                                    onTap: shortcut.copyToClipboard,
+                                  );
+                                },
+                                itemCount: shortcuts.length,
+                                shrinkWrap: true,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                  const SingleActivator(LogicalKeyboardKey.keyW): () =>
-                      moveCamera(MovingDirection.forwards, rows + 1),
-                  const SingleActivator(LogicalKeyboardKey.keyA): () =>
-                      moveCamera(MovingDirection.left, columns + 1),
-                  const SingleActivator(LogicalKeyboardKey.keyS): () =>
-                      moveCamera(MovingDirection.backwards, rows + 1),
-                  const SingleActivator(LogicalKeyboardKey.keyD): () =>
-                      moveCamera(MovingDirection.right, columns + 1),
-                  const SingleActivator(LogicalKeyboardKey.bracketRight): () =>
-                      switchPlatforms(1),
-                  const SingleActivator(LogicalKeyboardKey.bracketLeft): () =>
-                      switchPlatforms(-1),
-                  SingleActivator(
-                    LogicalKeyboardKey.keyS,
-                    control: useControlKey,
-                    meta: useMetaKey,
-                  ): _saveLevel,
-                },
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    for (var row = rows; row >= 0; row--)
-                      Expanded(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            for (var column = 0; column <= columns; column++)
-                              Builder(
-                                builder: (final builderContext) {
-                                  final point = Point(
-                                    coordinates.x + column,
-                                    coordinates.y + row,
-                                  );
-                                  final tile = getTileAt(point);
-                                  return TileCard(
-                                    autofocus: row == 0 && column == 0,
-                                    levelId: widget.levelId,
-                                    platformId: tile?.id,
-                                    coordinates: point,
-                                    performAction: performAction,
-                                    linkingPlatformId: linkingPlatformId,
-                                    linkPlatforms: () {
-                                      if (tile == null) {
-                                        return builderContext.announce(
-                                          // ignore: lines_longer_than_80_chars
-                                          'If you are seeing this message, some how you could link a wall as if it was a platform.',
-                                        );
-                                      }
-                                      linkPlatforms(tile);
-                                    },
-                                    showDependentPlatforms: () =>
-                                        showPlatformDependencies(
-                                      builderContext,
-                                      tile!,
-                                    ),
-                                    resizePlatform: (final direction) =>
-                                        resizePlatform(
-                                      tile!,
-                                      direction,
-                                    ),
-                                    movePlatform: (final direction) =>
-                                        movePlatform(
-                                      tile!,
-                                      direction,
-                                    ),
-                                  );
-                                },
-                              ),
-                          ],
+                    const SingleActivator(LogicalKeyboardKey.keyW): () =>
+                        moveCamera(MovingDirection.forwards, rows + 1),
+                    const SingleActivator(LogicalKeyboardKey.keyA): () =>
+                        moveCamera(MovingDirection.left, columns + 1),
+                    const SingleActivator(LogicalKeyboardKey.keyS): () =>
+                        moveCamera(MovingDirection.backwards, rows + 1),
+                    const SingleActivator(LogicalKeyboardKey.keyD): () =>
+                        moveCamera(MovingDirection.right, columns + 1),
+                    const SingleActivator(LogicalKeyboardKey.bracketRight):
+                        () => switchPlatforms(1),
+                    const SingleActivator(LogicalKeyboardKey.bracketLeft): () =>
+                        switchPlatforms(-1),
+                    SingleActivator(
+                      LogicalKeyboardKey.keyS,
+                      control: useControlKey,
+                      meta: useMetaKey,
+                    ): _saveLevel,
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (var row = rows; row >= 0; row--)
+                        Expanded(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              for (var column = 0; column <= columns; column++)
+                                Builder(
+                                  builder: (final builderContext) {
+                                    final point = Point(
+                                      coordinates.x + column,
+                                      coordinates.y + row,
+                                    );
+                                    final tile = getTileAt(point);
+                                    return TileCard(
+                                      autofocus: row == 0 && column == 0,
+                                      levelId: widget.levelId,
+                                      platformId: tile?.id,
+                                      coordinates: point,
+                                      performAction: performAction,
+                                      linkingPlatformId: linkingPlatformId,
+                                      linkPlatforms: () {
+                                        if (tile == null) {
+                                          return builderContext.announce(
+                                            // ignore: lines_longer_than_80_chars
+                                            'If you are seeing this message, some how you could link a wall as if it was a platform.',
+                                          );
+                                        }
+                                        linkPlatforms(tile);
+                                      },
+                                      showDependentPlatforms: () =>
+                                          showPlatformDependencies(
+                                        builderContext,
+                                        tile!,
+                                      ),
+                                      resizePlatform: (final direction) =>
+                                          resizePlatform(
+                                        tile!,
+                                        direction,
+                                      ),
+                                      movePlatform: (final direction) =>
+                                          movePlatform(
+                                        tile!,
+                                        direction,
+                                      ),
+                                    );
+                                  },
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
-                  ],
-                ),
-              );
-            },
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -320,6 +344,7 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
   /// If any tiles overlap, [PlatformOverlapException] will be thrown.
   void rebuildTiles() {
     tiles.clear();
+    objects.clear();
     for (final platform in platforms) {
       for (var x = platform.startX; x <= platform.endX; x++) {
         for (var y = platform.startY; y <= platform.endY; y++) {
@@ -335,6 +360,9 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
           tiles[point] = platform;
         }
       }
+    }
+    for (final object in level.objects) {
+      objects[object.coordinates] = object;
     }
   }
 
