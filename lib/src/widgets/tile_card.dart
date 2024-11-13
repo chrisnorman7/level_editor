@@ -452,7 +452,7 @@ class TileCard extends ConsumerWidget {
           colour = Colors.white;
         }
         return PlaySoundSemantics(
-          key: platform == null ? null : ValueKey(platform.toJson().toString()),
+          key: platform == null ? null : ValueKey(platform.id),
           sound: sound,
           child: PerformableActions(
             actions: actions,
