@@ -33,6 +33,7 @@ class PerformableActions extends StatelessWidget {
             MenuItemButton(
               autofocus: i == 0,
               onPressed: actions[i].invoke,
+              shortcut: actions[i].activator,
               child: Text(actions[i].name),
             ),
         ],
