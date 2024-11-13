@@ -216,47 +216,45 @@ class TileCard extends ConsumerWidget {
     final menuController = MenuController();
     if (platform == null) {
       sound = editor.wallSound;
-      actions.addAll(
-        [
-          PerformableAction(
-            name: 'New platform',
-            activator: SingleActivator(
-              LogicalKeyboardKey.keyN,
-              control: useControlKey,
-              meta: useMetaKey,
-            ),
-            invoke: () {
-              final terrains = ref.read(terrainsProvider);
-              final platform = GameLevelPlatformReference(
-                id: newId(),
-                terrainId: terrains.first.id,
-                startX: max(0, coordinates.x),
-                startY: max(0, coordinates.y),
-              );
-              if (coordinates.x < 0 || coordinates.y < 0) {
-                for (final other in level.platforms) {
-                  if (coordinates.x < 0) {
-                    other.startX -= coordinates.x;
-                  }
-                  if (coordinates.y < 0) {
-                    other.startY -= coordinates.y;
-                  }
+      actions.add(
+        PerformableAction(
+          name: 'New platform',
+          activator: SingleActivator(
+            LogicalKeyboardKey.keyN,
+            control: useControlKey,
+            meta: useMetaKey,
+          ),
+          invoke: () {
+            final terrains = ref.read(terrainsProvider);
+            final platform = GameLevelPlatformReference(
+              id: newId(),
+              terrainId: terrains.first.id,
+              startX: max(0, coordinates.x),
+              startY: max(0, coordinates.y),
+            );
+            if (coordinates.x < 0 || coordinates.y < 0) {
+              for (final other in level.platforms) {
+                if (coordinates.x < 0) {
+                  other.startX -= coordinates.x;
+                }
+                if (coordinates.y < 0) {
+                  other.startY -= coordinates.y;
                 }
               }
-              final action = UndoableAction(
-                perform: () {
-                  level.platforms.add(platform);
-                },
-                undo: () {
-                  level.platforms.removeWhere(
-                    (final other) => other.id == platform.id,
-                  );
-                },
-              );
-              performAction(action);
-            },
-          ),
-        ],
+            }
+            final action = UndoableAction(
+              perform: () {
+                level.platforms.add(platform);
+              },
+              undo: () {
+                level.platforms.removeWhere(
+                  (final other) => other.id == platform.id,
+                );
+              },
+            );
+            performAction(action);
+          },
+        ),
       );
     } else {
       final footstepSounds = ref.watch(
@@ -431,7 +429,7 @@ class TileCard extends ConsumerWidget {
             ),
           ),
           PerformableAction(
-            name: 'Link platforms',
+            name: 'Toggle link menu',
             activator: SingleActivator(
               LogicalKeyboardKey.keyL,
               control: useControlKey,
@@ -509,33 +507,33 @@ class TileCard extends ConsumerWidget {
       sound: sound,
       child: PerformableActions(
         actions: actions,
-        child: FocusableActionDetector(
-          autofocus: autofocus,
-          actions: {
-            ActivateIntent: CallbackAction(
-              onInvoke: (final intent) {
-                onTap(context);
-                return null;
-              },
-            ),
-          },
-          child: GestureDetector(
-            onTap: () => onTap(context),
-            child: Semantics(
-              label:
-                  // ignore: lines_longer_than_80_chars
-                  '$linkText${coordinates.x}, ${coordinates.y}: ${platform == null ? "Wall" : '${platform.name} (${terrain!.name})${target == null ? "" : " [${target.name}]"}'}${objects.isEmpty ? "" : ': ${objects.map((final o) => o.name).join(', ')}'}',
-              child: Card(
-                color: colour,
-                elevation: 3,
-                margin: const EdgeInsets.all(8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: MenuAnchor(
-                  menuChildren: menuChildren,
-                  controller: menuController,
-                  builder: (final _, final __, final ___) => Padding(
+        child: MenuAnchor(
+          menuChildren: menuChildren,
+          controller: menuController,
+          builder: (final _, final __, final ___) => FocusableActionDetector(
+            autofocus: autofocus,
+            actions: {
+              ActivateIntent: CallbackAction(
+                onInvoke: (final intent) {
+                  onTap(context);
+                  return null;
+                },
+              ),
+            },
+            child: GestureDetector(
+              onTap: () => onTap(context),
+              child: Semantics(
+                label:
+                    // ignore: lines_longer_than_80_chars
+                    '$linkText${coordinates.x}, ${coordinates.y}: ${platform == null ? "Wall" : '${platform.name} (${terrain!.name})${target == null ? "" : " [${target.name}]"}'}${objects.isEmpty ? "" : ': ${objects.map((final o) => o.name).join(', ')}'}',
+                child: Card(
+                  color: colour,
+                  elevation: 3,
+                  margin: const EdgeInsets.all(8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Padding(
                     padding: const EdgeInsets.all(8),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

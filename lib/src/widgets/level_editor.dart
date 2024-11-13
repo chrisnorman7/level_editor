@@ -98,7 +98,7 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
     const shortcuts = <String>[
       'CTRL+S: Save the level',
       'CTRL+Z: Undo most recent action',
-      'CTRL+Y: Redo most recent action',
+      'CTRL+SHIFT+Z: Redo most recent action',
       'W: Move north',
       'D: move east',
       'S: Move south',
@@ -106,7 +106,7 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
       ']: Move to next platform',
       '[: Move to previous platform',
       'CTRL+N: New platform',
-      'CTRL+L: link the current platform',
+      'CTRL+L: Toggle link menu',
       'CTRL+R: Rename the current platform',
       'CTRL+T: Change the platform terrain',
       'ALT+Arrows: Resize platforms',
@@ -217,7 +217,7 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
                 return CallbackShortcuts(
                   bindings: {
                     const SingleActivator(LogicalKeyboardKey.escape): () =>
-                        Navigator.maybePop(innerContext),
+                        Navigator.maybePop(ambianceBuilderContext),
                     SingleActivator(
                       LogicalKeyboardKey.slash,
                       control: useControlKey,
