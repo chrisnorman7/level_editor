@@ -95,7 +95,7 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
     random = Random();
     tiles = {};
     objects = {};
-    setCoordinates(widget.startCoordinates);
+    _setCoordinates(widget.startCoordinates);
   }
 
   /// Build a widget.
@@ -385,17 +385,29 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
       _ => coordinates.y
     };
     final point = Point(x, y);
-    setCoordinates(point);
-    setState(() {});
+    _setCoordinates(point);
   }
 
   /// Set [coordinates] to [point].
-  void setCoordinates(final Point<int> point) {
+  ///
+  /// This method does no smoothing. As such, [point] always ends up being the
+  /// bottom left coordinate.
+  ///
+  /// If you want a method with smoothing, use [panToCoordinates].
+  void _setCoordinates(final Point<int> point) {
     coordinates = point;
     SoLoud.instance.set3dListenerPosition(
       point.x.toDouble(),
       point.y.toDouble(),
       0,
+    );
+    setState(() {});
+  }
+
+  /// Pan the screen to [point].
+  void panToCoordinates(final Point<int> point) {
+    _setCoordinates(
+      Point(point.x - (point.x % columns), point.y - (point.y % rows)),
     );
   }
 
@@ -415,7 +427,7 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
         : (platforms.indexWhere((final platform) => platform.id == tile.id) +
             direction);
     final platform = platforms[index % platforms.length];
-    setCoordinates(platform.start);
+    panToCoordinates(platform.start);
   }
 
   /// Perform an action.
