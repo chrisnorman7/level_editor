@@ -4,7 +4,9 @@ import 'package:backstreets_widgets/extensions.dart';
 import 'package:backstreets_widgets/screens.dart';
 import 'package:backstreets_widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_audio_games/flutter_audio_games.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:path/path.dart' as path;
 
 import '../constants.dart';
@@ -35,31 +37,49 @@ class LevelsScreen extends ConsumerWidget {
       child = ListView.builder(
         itemBuilder: (final context, final index) {
           final level = levels[index];
-          return CommonShortcuts(
-            deleteCallback: () {
-              context.confirm(
-                message:
-                    'Are you sure you want to delete the ${level.name} level?',
-                title: 'Confirm Delete',
-                yesCallback: () {
-                  Navigator.pop(context);
-                  levels.removeWhere((final l) => l.id == level.id);
-                  File(path.join(levelsDirectory, level.filename)).deleteSync(
-                    recursive: true,
-                  );
-                  ref.invalidate(gameLevelsProvider);
-                },
-              );
-            },
-            child: ListTile(
-              autofocus: index == 0,
-              title: Text(level.name),
-              onTap: () => context.pushWidgetBuilder(
-                (final _) => EditLevelScreen(
-                  levelId: level.id,
-                ),
+          final child = Builder(
+            builder: (final builderContext) => CommonShortcuts(
+              deleteCallback: () {
+                context.confirm(
+                  message:
+                      // ignore: lines_longer_than_80_chars
+                      'Are you sure you want to delete the ${level.name} level?',
+                  title: 'Confirm Delete',
+                  yesCallback: () {
+                    Navigator.pop(context);
+                    levels.removeWhere((final l) => l.id == level.id);
+                    File(path.join(levelsDirectory, level.filename)).deleteSync(
+                      recursive: true,
+                    );
+                    ref.invalidate(gameLevelsProvider);
+                  },
+                );
+              },
+              child: ListTile(
+                autofocus: index == 0,
+                title: Text(level.name),
+                onTap: () => builderContext
+                  ..stopPlaySoundSemantics()
+                  ..pushWidgetBuilder(
+                    (final _) => EditLevelScreen(
+                      levelId: level.id,
+                    ),
+                  ),
               ),
             ),
+          );
+          final musicReference = level.music;
+          if (musicReference == null) {
+            return child;
+          }
+          return PlaySoundSemantics(
+            sound: musicReference.asSound(
+              destroy: false,
+              soundType: editor.defaultSoundType,
+              loadMode: LoadMode.disk,
+              looping: true,
+            ),
+            child: child,
           );
         },
         itemCount: levels.length,
