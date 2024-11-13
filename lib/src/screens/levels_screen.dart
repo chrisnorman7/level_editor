@@ -88,6 +88,7 @@ class LevelsScreen extends ConsumerWidget {
       id: id,
       filename: '$id.json',
       platforms: [],
+      objects: [],
     );
     saveLevel(ref: ref, level: level);
     ref.context.pushWidgetBuilder(

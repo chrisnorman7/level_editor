@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import 'game_level_object_reference.dart';
 import 'game_level_platform_reference.dart';
 import 'sound_reference.dart';
 
@@ -13,6 +14,7 @@ class GameLevelReference {
     required this.id,
     required this.filename,
     required this.platforms,
+    required this.objects,
     this.name = 'Untitled Level',
     this.music,
   });
@@ -32,6 +34,9 @@ class GameLevelReference {
 
   /// The platforms on this level.
   final List<GameLevelPlatformReference> platforms;
+
+  /// The objects in this level.
+  final List<GameLevelObjectReference> objects;
 
   /// The music for this level.
   SoundReference? music;
