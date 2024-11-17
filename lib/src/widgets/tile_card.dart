@@ -16,8 +16,6 @@ import '../providers.dart';
 import '../screens/edit_platform_screen.dart';
 import '../screens/select_terrain_screen.dart';
 import '../undoable_action.dart';
-import 'performable_actions/performable_action.dart';
-import 'performable_actions/performable_actions.dart';
 
 /// The random number generator to use.
 final random = Random();
