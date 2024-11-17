@@ -54,6 +54,9 @@ class LevelEditor extends ConsumerStatefulWidget {
 
 /// State for [LevelEditor].
 class LevelEditorState extends ConsumerState<LevelEditor> {
+  /// The focus nodes to use.
+  late final List<List<FocusNode>> focusNodes;
+
   /// How many columns of tiles to show.
   late int columns;
 
@@ -104,6 +107,29 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
     tiles = {};
     objects = {};
     _setCoordinates(widget.startCoordinates);
+    focusNodes = List.generate(
+      widget.longestSide,
+      (final index) => List.generate(
+        widget.shortestSide,
+        (final index) => FocusNode(),
+      ),
+    );
+    assert(
+      focusNodes.length == widget.longestSide,
+      'I apparently need to research `List.generate`.',
+    );
+  }
+
+  /// Dispose of the widget.
+  @override
+  void dispose() {
+    super.dispose();
+    for (final list in focusNodes) {
+      for (final focusNode in list) {
+        focusNode.dispose();
+      }
+    }
+    focusNodes.clear();
   }
 
   /// Build a widget.
@@ -275,13 +301,13 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      for (var row = rows; row >= 0; row--)
+                      for (var row = rows - 1; row >= 0; row--)
                         Expanded(
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              for (var column = 0; column <= columns; column++)
+                              for (var column = 0; column < columns; column++)
                                 Builder(
                                   builder: (final builderContext) {
                                     final point = Point(
@@ -290,6 +316,12 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
                                     );
                                     final tile = getTileAt(point);
                                     return TileCard(
+                                      focusNode: getFocusNode(
+                                        Point(
+                                          column,
+                                          row,
+                                        ),
+                                      ),
                                       autofocus: row == 0 && column == 0,
                                       levelId: widget.levelId,
                                       platformId: tile?.id,
@@ -335,6 +367,14 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
         ),
       ),
     );
+  }
+
+  /// Get a suitable index from [point].
+  FocusNode getFocusNode(final Point<int> point) {
+    if (rows > columns) {
+      return focusNodes[point.y][point.x];
+    }
+    return focusNodes[point.x][point.y];
   }
 
   /// Save the [level].
@@ -403,7 +443,7 @@ class LevelEditorState extends ConsumerState<LevelEditor> {
   ///
   /// If you want a method with smoothing, use [panToCoordinates].
   void _setCoordinates(final Point<int> point) {
-    coordinates = point;
+    coordinates = Point(max(0, point.x), max(0, point.y));
     SoLoud.instance.set3dListenerPosition(
       point.x.toDouble(),
       point.y.toDouble(),

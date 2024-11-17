@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_audio_games/flutter_audio_games.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_soloud/flutter_soloud.dart';
 
 import '../../level_editor.dart';
 import '../json/game_level_object_reference.dart';
@@ -25,6 +26,7 @@ final random = Random();
 class TileCard extends ConsumerWidget {
   /// Create an instance.
   const TileCard({
+    required this.focusNode,
     required this.levelId,
     required this.platformId,
     required this.coordinates,
@@ -37,6 +39,9 @@ class TileCard extends ConsumerWidget {
     this.autofocus = false,
     super.key,
   });
+
+  /// The focus node to use.
+  final FocusNode focusNode;
 
   /// The ID of the level that [platformId] is part of.
   final String levelId;
@@ -502,15 +507,23 @@ class TileCard extends ConsumerWidget {
     } else {
       colour = Colors.white;
     }
-    return PlaySoundSemantics(
-      key: platform == null ? null : ValueKey(platform.id),
-      sound: sound,
+    return Semantics(
+      onDidGainAccessibilityFocus: () {
+        context.maybePlaySound(sound);
+        SoLoud.instance.set3dListenerAt(
+          coordinates.x.toDouble(),
+          coordinates.y.toDouble(),
+          0,
+        );
+      },
       child: PerformableActions(
         actions: actions,
         child: MenuAnchor(
+          childFocusNode: focusNode,
           menuChildren: menuChildren,
           controller: menuController,
           builder: (final _, final __, final ___) => FocusableActionDetector(
+            focusNode: focusNode,
             autofocus: autofocus,
             actions: {
               ActivateIntent: CallbackAction(
