@@ -39,88 +39,81 @@ class LevelsScreen extends ConsumerWidget {
       child = ListView.builder(
         itemBuilder: (final context, final index) {
           final level = levels[index];
-          final child = Builder(
-            builder: (final builderContext) => PerformableActionsListTile(
-              actions: [
-                PerformableAction(
-                  name: 'Rename',
-                  activator: SingleActivator(
-                    LogicalKeyboardKey.keyR,
-                    control: useControlKey,
-                    meta: useMetaKey,
-                  ),
-                  invoke: () {
-                    builderContext
-                      ..stopPlaySoundSemantics()
-                      ..pushWidgetBuilder(
-                        (final getTextBuilder) => GetText(
-                          onDone: (final value) {
-                            Navigator.pop(getTextBuilder);
-                            level.name = value;
-                            saveLevel(ref: ref, level: level);
-                          },
-                          labelText: 'Level name',
-                          text: level.name,
-                          title: 'Rename Level',
-                        ),
-                      );
-                  },
-                ),
-                PerformableAction(
-                  name: 'Delete',
-                  activator: deleteShortcut,
-                  invoke: () {
-                    builderContext.stopPlaySoundSemantics();
-                    context.confirm(
-                      message:
-                          // ignore: lines_longer_than_80_chars
-                          'Are you sure you want to delete the ${level.name} level?',
-                      title: 'Confirm Delete',
-                      yesCallback: () {
-                        Navigator.pop(context);
-                        levels.removeWhere((final l) => l.id == level.id);
-                        File(path.join(levelsDirectory, level.filename))
-                            .deleteSync(
-                          recursive: true,
-                        );
-                        ref.invalidate(gameLevelsProvider);
-                      },
-                    );
-                  },
-                ),
-              ],
-              autofocus: index == 0,
-              title: Text(level.name),
-              onTap: () => builderContext
-                ..stopPlaySoundSemantics()
-                ..pushWidgetBuilder(
-                  (final _) => EditLevelScreen(
-                    levelId: level.id,
-                  ),
-                ),
-            ),
-          );
-          final musicReference = level.music;
-          if (musicReference == null) {
-            return child;
-          }
-          return PlaySoundSemantics(
-            sound: musicReference.asSound(
+          return MaybePlaySoundSemantics(
+            sound: level.music?.asSound(
               destroy: false,
               soundType: editor.defaultSoundType,
               loadMode: LoadMode.disk,
               looping: true,
             ),
-            child: child,
+            child: Builder(
+              builder: (final builderContext) => PerformableActionsListTile(
+                actions: [
+                  PerformableAction(
+                    name: 'Rename',
+                    activator: CrossPlatformSingleActivator(
+                      LogicalKeyboardKey.keyR,
+                    ),
+                    invoke: () {
+                      builderContext
+                        ..stopPlaySoundSemantics()
+                        ..pushWidgetBuilder(
+                          (final getTextBuilder) => GetText(
+                            onDone: (final value) {
+                              Navigator.pop(getTextBuilder);
+                              level.name = value;
+                              saveLevel(ref: ref, level: level);
+                            },
+                            labelText: 'Level name',
+                            text: level.name,
+                            title: 'Rename Level',
+                          ),
+                        );
+                    },
+                  ),
+                  PerformableAction(
+                    name: 'Delete',
+                    activator: deleteShortcut,
+                    invoke: () {
+                      builderContext.stopPlaySoundSemantics();
+                      context.confirm(
+                        message:
+                            // ignore: lines_longer_than_80_chars
+                            'Are you sure you want to delete the ${level.name} level?',
+                        title: 'Confirm Delete',
+                        yesCallback: () {
+                          Navigator.pop(context);
+                          levels.removeWhere((final l) => l.id == level.id);
+                          File(path.join(levelsDirectory, level.filename))
+                              .deleteSync(
+                            recursive: true,
+                          );
+                          ref.invalidate(gameLevelsProvider);
+                        },
+                      );
+                    },
+                  ),
+                ],
+                autofocus: index == 0,
+                title: Text(level.name),
+                onTap: () => builderContext
+                  ..stopPlaySoundSemantics()
+                  ..pushWidgetBuilder(
+                    (final _) => EditLevelScreen(
+                      levelId: level.id,
+                    ),
+                  ),
+              ),
+            ),
           );
         },
         itemCount: levels.length,
         shrinkWrap: true,
       );
     }
-    return CommonShortcuts(
-      newCallback: () => newLevel(ref),
-      child: Cancel(
+    return Cancel(
+      child: CommonShortcuts(
+        newCallback: () => newLevel(ref),
         child: SimpleScaffold(
           title: 'Levels',
           body: child,
